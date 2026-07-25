@@ -72,7 +72,10 @@
             <div class="dash-col">
               <div class="dash-col-header">
                 <h3 data-i18n="col-projects">Projects</h3>
-                <button id="btn-add-project" class="btn btn-small btn-primary" data-i18n="btn-new">+ New</button>
+                <div style="display: flex; gap: 6px;">
+                  <button id="btn-import-project" class="btn btn-small btn-secondary" data-i18n="btn-import-project" title="Import project from ZIP or folder">📥</button>
+                  <button id="btn-add-project" class="btn btn-small btn-primary" data-i18n="btn-new">+ New</button>
+                </div>
               </div>
               <div class="dash-list" id="dash-projects-list">Loading...</div>
             </div>
@@ -156,6 +159,7 @@
         <div style="flex: 2; display: flex; flex-direction: column; gap: 15px; min-width: 0;">
           <div style="position: relative; flex: 1; background: #000; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center;">
             <video id="exploratory-video" style="max-width: 100%; max-height: 100%; object-fit: contain;"></video>
+            <img id="exploratory-image" class="hidden" style="max-width: 100%; max-height: 100%; object-fit: contain;">
             <canvas id="annotation-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10;"></canvas>
             
             <div id="canvas-instructions" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 5px 10px; font-size: 11px; border-radius: 4px; pointer-events: none; z-index: 12;" data-i18n="exp-canvas-help">
@@ -164,7 +168,7 @@
           </div>
 
           <!-- Video Playback & Trimming Controls -->
-          <div style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+          <div id="video-controls-panel" style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
             <!-- Player Seek & Range Timeline -->
             <div style="display: flex; align-items: center; gap: 12px; position: relative;">
               <button id="btn-exp-play" class="btn btn-icon" style="font-size: 18px; color: var(--text-color);">▶</button>
@@ -206,6 +210,38 @@
               </div>
             </div>
           </div>
+
+          <!-- Image Edit Controls (hidden by default, shown in image view mode) -->
+          <div id="image-controls-panel" class="hidden" style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: 600;">🖼️ Image View</span>
+                <span id="image-view-info" style="font-size: 11px; color: #8b949e;"></span>
+              </div>
+              <button id="btn-back-to-video" class="btn btn-small btn-secondary">◀ Back to Video</button>
+            </div>
+
+            <!-- Color Picker -->
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <span style="color: #8b949e;">Mark Color:</span>
+              <div id="image-color-picker" style="display: flex; gap: 6px;">
+                <button class="color-swatch active" data-color="#f85149" style="width: 24px; height: 24px; border-radius: 50%; background: #f85149; border: 2px solid transparent; cursor: pointer;" title="Red"></button>
+                <button class="color-swatch" data-color="#3fb950" style="width: 24px; height: 24px; border-radius: 50%; background: #3fb950; border: 2px solid transparent; cursor: pointer;" title="Green"></button>
+              </div>
+            </div>
+
+            <!-- Add Annotation Form -->
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="image-annotation-input" placeholder="New element name..." style="flex: 1; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+              <button id="btn-image-add-annotation" class="btn btn-small btn-primary">Add</button>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 8px;">
+              <button id="btn-image-clear-annotations" class="btn btn-small btn-secondary" style="flex: 1;">Clear All</button>
+              <button id="btn-image-save" class="btn btn-small btn-primary" style="flex: 1;">💾 Save Changes</button>
+            </div>
+          </div>
         </div>
 
         <!-- Right: Annotations & Actions -->
@@ -214,6 +250,13 @@
           <div id="annotation-details-form" class="hidden" style="background: rgba(88,166,255,0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
             <h4 style="font-size: 13px; color: var(--accent-color); margin: 0;" data-i18n="exp-add-annotation">New Highlight Annotation</h4>
             <input type="text" id="inp-annotation-label" placeholder="e.g., Save Button, Username Input" style="width: 100%; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; color: #8b949e;">Color:</span>
+              <div id="sidebar-color-picker" style="display: flex; gap: 4px;">
+                <button class="color-swatch active" data-color="#f85149" style="width: 20px; height: 20px; border-radius: 50%; background: #f85149; border: 2px solid transparent; cursor: pointer;" title="Red"></button>
+                <button class="color-swatch" data-color="#3fb950" style="width: 20px; height: 20px; border-radius: 50%; background: #3fb950; border: 2px solid transparent; cursor: pointer;" title="Green"></button>
+              </div>
+            </div>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
               <button id="btn-cancel-annotation" class="btn btn-small btn-secondary" data-i18n="btn-back">Cancel</button>
               <button id="btn-save-annotation" class="btn btn-small btn-primary" data-i18n="btn-save">Add</button>
@@ -459,40 +502,23 @@
     </div>
   </div>
 
-  <!-- Evidence View Modal -->
-  <div id="modal-evidence-view-overlay" class="modal-overlay hidden">
-    <div class="modal evidence-view-modal" style="width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 id="evidence-view-title" style="margin: 0; font-size: 16px;" data-i18n="exp-evidence-view-title">Evidence Detail</h3>
-        <button id="btn-evidence-view-close" class="btn btn-small btn-secondary">✕</button>
-      </div>
-
-      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
-        <!-- Screenshot Image -->
-        <div style="background: #000; border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 200px;">
-          <img id="evidence-view-image" style="max-width: 100%; max-height: 45vh; object-fit: contain;" src="">
-        </div>
-
-        <!-- Description -->
-        <div id="evidence-view-description" style="font-size: 12px; color: #8b949e; padding: 0 4px;"></div>
-
-        <!-- Marked Elements -->
-        <div>
-          <h4 style="font-size: 13px; margin: 0 0 8px 0; color: var(--accent-color);" data-i18n="exp-evidence-marked-elements">Marked Elements</h4>
-          <div id="evidence-view-annotations" style="display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
-            <span id="lbl-no-view-annotations" style="font-size: 12px; color: #8b949e;" data-i18n="exp-no-annotations">No marked elements yet.</span>
-          </div>
-        </div>
-
-        <!-- Add Annotation Form -->
-        <div class="evidence-view-add-form">
-          <input type="text" id="evidence-view-new-label" placeholder="New element name..." style="flex: 1; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
-          <button id="btn-evidence-view-add" class="btn btn-small btn-primary" data-i18n="exp-btn-add">Add</button>
+  <!-- Import Choice Modal -->
+  <div id="modal-import-choice-overlay" class="modal-overlay hidden">
+    <div class="modal" style="width: 450px;">
+      <h3 id="import-choice-title" data-i18n="import-choice-title">Import Project</h3>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+        <p style="font-size: 14px; color: var(--text-color); line-height: 1.5;" data-i18n="import-choice-desc">How would you like to import the project?</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="btn-import-zip" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; font-size: 14px; font-weight: 600;">
+            <span>📦</span> <span data-i18n="import-zip-btn">ZIP Archive</span>
+          </button>
+          <button id="btn-import-folder" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; font-size: 14px; font-weight: 600;">
+            <span>📁</span> <span data-i18n="import-folder-btn">System Folder</span>
+          </button>
         </div>
       </div>
-
-      <div class="modal-actions" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-        <button id="btn-evidence-view-close-bottom" class="btn btn-secondary" data-i18n="btn-back">Close</button>
+      <div class="modal-actions" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <button id="btn-import-choice-cancel" class="btn btn-secondary" data-i18n="btn-back">Cancel</button>
       </div>
     </div>
   </div>

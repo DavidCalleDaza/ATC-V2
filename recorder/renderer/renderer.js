@@ -79,8 +79,12 @@ const translations = {
     "exp-save-title": "Save Exploratory Evidence",
     "exp-save-hu": "Select Destination User Story (HU)",
     "exp-new-hu-label": "Create New User Story (HU)",
-    "exp-save-desc": "Observation Description",
-    "exp-speed-label": "Speed:"
+    "exp-speed-label": "Speed:",
+    "import-choice-title": "Import Project",
+    "import-choice-desc": "How would you like to import the project?",
+    "import-zip-btn": "ZIP Archive (physical compressed file)",
+    "import-folder-btn": "System Folder (physical folder directory)",
+    "btn-import-project": "Import Project"
   },
   es: {
     "app-title": "Automatización de casos de prueba",
@@ -162,7 +166,12 @@ const translations = {
     "exp-save-hu": "Selecciona Historia de Usuario (HU) Destino",
     "exp-new-hu-label": "Crear Nueva Historia de Usuario (HU)",
     "exp-save-desc": "Descripción de Observaciones",
-    "exp-speed-label": "Velocidad:"
+    "exp-speed-label": "Velocidad:",
+    "import-choice-title": "Importar Proyecto",
+    "import-choice-desc": "¿Cómo desea importar el proyecto?",
+    "import-zip-btn": "Archivo ZIP (comprimido físico)",
+    "import-folder-btn": "Carpeta del sistema (directorio físico)",
+    "btn-import-project": "Importar Proyecto"
   }
 };
 
@@ -869,6 +878,58 @@ $('#btn-add-project').onclick = () => openModal(translations[currentLang]['modal
   renderProjects();
 });
 
+// Import Project
+const importChoiceModal = $('#modal-import-choice-overlay');
+
+$('#btn-import-project').onclick = () => {
+  importChoiceModal.classList.remove('hidden');
+};
+
+$('#btn-import-choice-cancel').onclick = () => {
+  importChoiceModal.classList.add('hidden');
+};
+
+$('#btn-import-zip').onclick = async () => {
+  importChoiceModal.classList.add('hidden');
+  await executeImport('zip');
+};
+
+$('#btn-import-folder').onclick = async () => {
+  importChoiceModal.classList.add('hidden');
+  await executeImport('folder');
+};
+
+async function executeImport(type) {
+  try {
+    let source;
+    if (type === 'zip') {
+      source = await window.api.selectProjectZip();
+    } else {
+      source = await window.api.selectProjectFolder();
+    }
+
+    if (!source) return;
+
+    const res = await window.api.importProject({ source, type });
+
+    if (res.success) {
+      await renderProjects();
+      const msg = currentLang === 'es'
+        ? `Proyecto "${res.projectName}" importado correctamente.\n\nSprints: ${res.sprints.join(', ')}`
+        : `Project "${res.projectName}" imported successfully.\n\nSprints: ${res.sprints.join(', ')}`;
+      showDarkAlert(
+        currentLang === 'es' ? 'Importación Exitosa' : 'Import Successful',
+        msg
+      );
+    } else {
+      alert(res.error);
+    }
+  } catch (err) {
+    console.error('Import error:', err);
+    alert('Error: ' + err.message);
+  }
+}
+
 $('#btn-add-sprint').onclick = () => openModal(translations[currentLang]['modal-new-sprint'], 'Ej: sprint-03', async (val) => {
   await window.api.createSprint({ project: state.project, sprintName: val });
   renderSprints();
@@ -1511,6 +1572,19 @@ function loadExploratoryVideo(filePath) {
   expVideoPath = filePath;
   const video = $('#exploratory-video');
   
+  // Restore video view if in image view mode
+  if (isImageViewMode) {
+    isImageViewMode = false;
+    currentViewGroup = null;
+    currentViewMetadata = null;
+    $('#exploratory-image').classList.add('hidden');
+    video.classList.remove('hidden');
+    $('#video-controls-panel').classList.remove('hidden');
+    $('#image-controls-panel').classList.add('hidden');
+    $('#btn-exp-trim-segment').classList.remove('hidden');
+    $('#btn-exp-save-frame').classList.remove('hidden');
+  }
+  
   // Clean up previous states
   video.pause();
   video.playbackRate = 1.0;
@@ -1624,7 +1698,7 @@ async function renderEvidenceList() {
     // View evidence
     if (hasScreenshot) {
       item.querySelector('.evidence-view-btn').addEventListener('click', () => {
-        openEvidenceViewModal(group);
+        openEvidenceImageView(group);
       });
     }
 
@@ -1636,12 +1710,15 @@ async function renderEvidenceList() {
     }
 
     // Delete
-    item.querySelector('.evidence-delete-btn').addEventListener('click', async () => {
-      if (!confirm(currentLang === 'es' ? '¿Eliminar esta evidencia?' : 'Delete this evidence?')) return;
-      if (group.video) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.video.name });
-      if (group.screenshot) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.screenshot.name });
-      if (group.meta) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.meta.name });
-      renderEvidenceList();
+    item.querySelector('.evidence-delete-btn').addEventListener('click', () => {
+      const title = currentLang === 'es' ? 'Eliminar Evidencia' : 'Delete Evidence';
+      const msg = currentLang === 'es' ? '¿Está seguro de que desea eliminar esta evidencia?' : 'Are you sure you want to delete this evidence?';
+      openConfirmModal(title, msg, async () => {
+        if (group.video) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.video.name });
+        if (group.screenshot) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.screenshot.name });
+        if (group.meta) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.meta.name });
+        renderEvidenceList();
+      });
     });
 
     container.appendChild(item);
@@ -1655,136 +1732,181 @@ function loadSavedClip(filePath) {
 // Evidence list refresh
 $('#btn-refresh-evidence').addEventListener('click', () => renderEvidenceList());
 
-// ── Evidence View Modal ──
+// ── Image View Mode ──
+let isImageViewMode = false;
 let currentViewGroup = null;
 let currentViewMetadata = null;
+let selectedAnnotationColor = '#f85149';
 
-async function openEvidenceViewModal(group) {
+// Color picker handlers (shared for sidebar and image controls)
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+  swatch.addEventListener('click', (e) => {
+    const color = e.target.dataset.color;
+    selectedAnnotationColor = color;
+    // Update active state on all swatches
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll(`.color-swatch[data-color="${color}"]`).forEach(s => s.classList.add('active'));
+  });
+});
+
+async function openEvidenceImageView(group) {
+  if (!group.screenshot) return;
+
   currentViewGroup = group;
   const project = $('#exp-project-select').value;
   const sprint = $('#exp-sprint-select').value;
   const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
 
-  if (!group.screenshot) return;
+  // Pause video
+  const video = $('#exploratory-video');
+  video.pause();
+  $('#btn-exp-play').textContent = '▶';
 
-  // Load screenshot image via file:// protocol
-  const imgPath = group.screenshot.fullPath;
-  const resolvedPath = 'file:///' + imgPath.replace(/\\/g, '/');
-  $('#evidence-view-image').src = resolvedPath;
+  // Switch to image view
+  isImageViewMode = true;
+  video.classList.add('hidden');
+  $('#exploratory-image').classList.remove('hidden');
+  $('#exploratory-image').src = 'file:///' + group.screenshot.fullPath.replace(/\\/g, '/');
 
-  // Title
+  // Show image controls, hide video controls
+  $('#video-controls-panel').classList.add('hidden');
+  $('#image-controls-panel').classList.remove('hidden');
+
+  // Hide trim/screenshot export buttons, show image actions
+  $('#btn-exp-trim-segment').classList.add('hidden');
+  $('#btn-exp-save-frame').classList.add('hidden');
+
+  // Update info
   const typeLabels = { bug: '🐛 Bug', feature: '✨ Feature', testcase: '📋 Test Case', general: '📝 General' };
-  $('#evidence-view-title').textContent = `${typeLabels[group.type] || group.type} — Detail`;
+  $('#image-view-info').textContent = `${typeLabels[group.type] || group.type} — ${group.screenshot.name}`;
 
   // Load metadata
   if (group.meta) {
     const res = await window.api.readEvidenceMeta({ project, sprint, huName, metaFileName: group.meta.name });
     if (res.success) {
       currentViewMetadata = res.metadata;
-      $('#evidence-view-description').textContent = res.metadata.description || '';
-      renderEvidenceViewAnnotations(res.metadata.annotations || []);
+      // Load annotations into currentAnnotations (with color support)
+      currentAnnotations = (res.metadata.annotations || []).map(ann => ({
+        ...ann,
+        color: ann.color || '#f85149'
+      }));
     } else {
       currentViewMetadata = null;
-      $('#evidence-view-description').textContent = '';
-      renderEvidenceViewAnnotations([]);
+      currentAnnotations = [];
     }
   } else {
     currentViewMetadata = null;
-    $('#evidence-view-description').textContent = '';
-    renderEvidenceViewAnnotations([]);
+    currentAnnotations = [];
   }
 
-  // Clear input
-  $('#evidence-view-new-label').value = '';
-
-  // Show modal
-  $('#modal-evidence-view-overlay').classList.remove('hidden');
+  renderAnnotationsList();
+  setTimeout(alignCanvasWithImage, 200);
 }
 
-function renderEvidenceViewAnnotations(annotations) {
-  const container = $('#evidence-view-annotations');
-  const noLabel = $('#lbl-no-view-annotations');
-  container.querySelectorAll('.evidence-view-annotation-item').forEach(el => el.remove());
-
-  if (!annotations || annotations.length === 0) {
-    noLabel.classList.remove('hidden');
-    return;
-  }
-
-  noLabel.classList.add('hidden');
-
-  annotations.forEach((ann, idx) => {
-    const item = document.createElement('div');
-    item.className = 'evidence-view-annotation-item';
-
-    const hasCoords = ann.x !== 0 || ann.y !== 0;
-    const coordsStr = hasCoords ? `(${ann.x}, ${ann.y} ${ann.w}×${ann.h})` : '';
-
-    item.innerHTML = `
-      <div class="ev-ann-info">
-        <span class="ev-ann-label">${ann.label}</span>
-        ${coordsStr ? `<span class="ev-ann-coords">${coordsStr}</span>` : ''}
-      </div>
-      <button class="btn btn-small btn-secondary ev-ann-delete" title="Remove">✕</button>
-    `;
-
-    // Delete annotation
-    item.querySelector('.ev-ann-delete').addEventListener('click', async () => {
-      if (!currentViewMetadata || !currentViewGroup) return;
-      const project = $('#exp-project-select').value;
-      const sprint = $('#exp-sprint-select').value;
-      const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
-
-      currentViewMetadata.annotations.splice(idx, 1);
-      await window.api.updateEvidenceMeta({
-        project, sprint, huName,
-        metaFileName: currentViewGroup.meta.name,
-        metadata: currentViewMetadata
-      });
-      renderEvidenceViewAnnotations(currentViewMetadata.annotations);
-    });
-
-    container.appendChild(item);
-  });
+function alignCanvasWithImage() {
+  const img = $('#exploratory-image');
+  const container = img.parentElement;
+  const rect = container.getBoundingClientRect();
+  if (!img.naturalWidth || !img.naturalHeight) return;
+  const bounds = getVideoImageBounds(img, rect.width, rect.height);
+  canvas.style.left = bounds.x + 'px';
+  canvas.style.top = bounds.y + 'px';
+  canvas.style.width = bounds.w + 'px';
+  canvas.style.height = bounds.h + 'px';
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  redrawCanvas();
 }
 
-// Add annotation to evidence
-$('#btn-evidence-view-add').addEventListener('click', async () => {
-  const label = $('#evidence-view-new-label').value.trim();
+async function closeImageView() {
+  isImageViewMode = false;
+  currentViewGroup = null;
+  currentViewMetadata = null;
+
+  // Restore video view
+  const video = $('#exploratory-video');
+  $('#exploratory-image').classList.add('hidden');
+  video.classList.remove('hidden');
+
+  // Show video controls, hide image controls
+  $('#video-controls-panel').classList.remove('hidden');
+  $('#image-controls-panel').classList.add('hidden');
+
+  // Restore export buttons
+  $('#btn-exp-trim-segment').classList.remove('hidden');
+  $('#btn-exp-save-frame').classList.remove('hidden');
+
+  // Clear annotations
+  currentAnnotations = [];
+  currentRect = null;
+  renderAnnotationsList();
+  redrawCanvas();
+}
+
+// Back to video button
+$('#btn-back-to-video').addEventListener('click', () => closeImageView());
+
+// Image controls: Add annotation
+$('#btn-image-add-annotation').addEventListener('click', async () => {
+  const label = $('#image-annotation-input').value.trim();
   if (!label) return;
-  if (!currentViewMetadata || !currentViewGroup) return;
 
+  currentAnnotations.push({
+    label,
+    x: 0, y: 0, w: 0, h: 0,
+    color: selectedAnnotationColor
+  });
+
+  await saveImageAnnotations();
+  renderAnnotationsList();
+  redrawCanvas();
+  $('#image-annotation-input').value = '';
+});
+
+$('#image-annotation-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('#btn-image-add-annotation').click();
+});
+
+// Image controls: Clear all
+$('#btn-image-clear-annotations').addEventListener('click', async () => {
+  currentAnnotations = [];
+  await saveImageAnnotations();
+  renderAnnotationsList();
+  redrawCanvas();
+});
+
+// Image controls: Save changes
+$('#btn-image-save').addEventListener('click', async () => {
+  await saveImageAnnotations();
+  // Show brief confirmation
+  const btn = $('#btn-image-save');
+  const origText = btn.textContent;
+  btn.textContent = '✅ Saved!';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }, 1500);
+});
+
+async function saveImageAnnotations() {
+  if (!currentViewMetadata || !currentViewGroup) return;
   const project = $('#exp-project-select').value;
   const sprint = $('#exp-sprint-select').value;
   const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
 
-  currentViewMetadata.annotations.push({ x: 0, y: 0, w: 0, h: 0, label });
+  currentViewMetadata.annotations = currentAnnotations.map(ann => ({
+    x: ann.x, y: ann.y, w: ann.w, h: ann.h,
+    label: ann.label,
+    color: ann.color || '#f85149'
+  }));
+
   await window.api.updateEvidenceMeta({
     project, sprint, huName,
     metaFileName: currentViewGroup.meta.name,
     metadata: currentViewMetadata
   });
-
-  renderEvidenceViewAnnotations(currentViewMetadata.annotations);
-  $('#evidence-view-new-label').value = '';
-});
-
-// Enter key to add
-$('#evidence-view-new-label').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') $('#btn-evidence-view-add').click();
-});
-
-// Close modal
-$('#btn-evidence-view-close').addEventListener('click', () => {
-  $('#modal-evidence-view-overlay').classList.add('hidden');
-  currentViewGroup = null;
-  currentViewMetadata = null;
-});
-$('#btn-evidence-view-close-bottom').addEventListener('click', () => {
-  $('#modal-evidence-view-overlay').classList.add('hidden');
-  currentViewGroup = null;
-  currentViewMetadata = null;
-});
+}
 
 // Sliders and Seek Logic
 function updateTrimTimeline() {
@@ -1908,11 +2030,13 @@ let startX = 0, startY = 0;
 let currentRect = null;
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (!expVideoPath) return;
+  if (!expVideoPath && !isImageViewMode) return;
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
-  videoEl.pause();
-  $('#btn-exp-play').textContent = '▶';
+  if (!isImageViewMode) {
+    videoEl.pause();
+    $('#btn-exp-play').textContent = '▶';
+  }
 
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
@@ -1984,12 +2108,15 @@ $('#btn-save-annotation').addEventListener('click', () => {
       x: Math.round(currentRect.x),
       y: Math.round(currentRect.y),
       w: Math.round(currentRect.w),
-      h: Math.round(currentRect.h)
+      h: Math.round(currentRect.h),
+      color: selectedAnnotationColor
     });
     currentRect = null;
     $('#annotation-details-form').classList.add('hidden');
     renderAnnotationsList();
     redrawCanvas();
+    // Auto-save if in image view mode
+    if (isImageViewMode) saveImageAnnotations();
   }
 });
 
@@ -2003,15 +2130,24 @@ $('#btn-clear-annotations').addEventListener('click', () => {
   currentAnnotations = [];
   renderAnnotationsList();
   redrawCanvas();
+  if (isImageViewMode) saveImageAnnotations();
 });
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   currentAnnotations.forEach((ann) => {
-    ctx.strokeStyle = '#58a6ff';
+    const color = ann.color || '#58a6ff';
+    ctx.strokeStyle = color;
     ctx.lineWidth = 4;
-    ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+    ctx.fillStyle = hexToRgba(color, 0.15);
     ctx.strokeRect(ann.x, ann.y, ann.w, ann.h);
     ctx.fillRect(ann.x, ann.y, ann.w, ann.h);
     
@@ -2020,7 +2156,7 @@ function redrawCanvas() {
     const textWidth = ctx.measureText(ann.label).width;
     ctx.fillStyle = 'rgba(13, 17, 23, 0.85)';
     ctx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
-    ctx.fillStyle = '#58a6ff';
+    ctx.fillStyle = color;
     ctx.fillText(ann.label, ann.x + 8, ann.y - 9);
   });
 }
@@ -2038,6 +2174,10 @@ function renderAnnotationsList() {
     const item = document.createElement('div');
     item.className = 'annotation-item';
     
+    // Color dot
+    const colorDot = document.createElement('span');
+    colorDot.style.cssText = `display:inline-block; width:8px; height:8px; border-radius:50%; background:${ann.color || '#58a6ff'}; margin-right:6px; flex-shrink:0;`;
+    
     const textSpan = document.createElement('span');
     textSpan.className = 'ann-text';
     textSpan.textContent = ann.label;
@@ -2053,8 +2193,10 @@ function renderAnnotationsList() {
       currentAnnotations.splice(idx, 1);
       renderAnnotationsList();
       redrawCanvas();
+      if (isImageViewMode) saveImageAnnotations();
     };
     
+    item.appendChild(colorDot);
     item.appendChild(textSpan);
     item.appendChild(coordsSpan);
     item.appendChild(btnDel);
@@ -2308,19 +2450,20 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
       tempCtx.drawImage(videoEl, 0, 0, tempCanvas.width, tempCanvas.height);
       
       // Draw annotations on screenshot
-      tempCtx.strokeStyle = '#58a6ff';
       tempCtx.lineWidth = 4;
-      tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
       tempCtx.font = 'bold 16px sans-serif';
       currentAnnotations.forEach((ann) => {
+        const color = ann.color || '#58a6ff';
+        const fillBg = hexToRgba(color, 0.15);
+        tempCtx.strokeStyle = color;
         tempCtx.strokeRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillStyle = fillBg;
         tempCtx.fillRect(ann.x, ann.y, ann.w, ann.h);
-        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
         const textWidth = tempCtx.measureText(ann.label).width;
+        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
         tempCtx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
-        tempCtx.fillStyle = '#58a6ff';
+        tempCtx.fillStyle = color;
         tempCtx.fillText(ann.label, ann.x + 8, ann.y - 8);
-        tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
       });
       
       const base64Image = tempCanvas.toDataURL('image/png');
@@ -2354,19 +2497,20 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
       tempCtx.drawImage(videoEl, 0, 0, tempCanvas.width, tempCanvas.height);
       
       // Draw annotations on screenshot
-      tempCtx.strokeStyle = '#58a6ff';
       tempCtx.lineWidth = 4;
-      tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
       tempCtx.font = 'bold 16px sans-serif';
       currentAnnotations.forEach((ann) => {
+        const color = ann.color || '#58a6ff';
+        const fillBg = hexToRgba(color, 0.15);
+        tempCtx.strokeStyle = color;
         tempCtx.strokeRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillStyle = fillBg;
         tempCtx.fillRect(ann.x, ann.y, ann.w, ann.h);
-        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
         const textWidth = tempCtx.measureText(ann.label).width;
+        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
         tempCtx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
-        tempCtx.fillStyle = '#58a6ff';
+        tempCtx.fillStyle = color;
         tempCtx.fillText(ann.label, ann.x + 8, ann.y - 8);
-        tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
       });
       
       const base64Image = tempCanvas.toDataURL('image/png');

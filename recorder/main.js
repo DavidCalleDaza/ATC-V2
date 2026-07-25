@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, desktopCapturer, session, nativeThe
 const path = require('path');
 const fs = require('fs');
 const { spawn, execSync } = require('child_process');
+const AdmZip = require('adm-zip');
 
 // Desactivar aceleración por hardware para forzar captura por software (evita crashes de DirectX/DXGI y UAC)
 app.disableHardwareAcceleration();
@@ -226,6 +227,152 @@ ipcMain.handle('delete-hu', async (_event, { project, sprint, huName }) => {
     }
     return { success: true };
   } catch (err) { return { success: false, error: err.message }; }
+});
+
+// ── Import Project Handlers ──────────────────────────────────────────────────
+
+ipcMain.handle('select-project-zip', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'ZIP Archives', extensions: ['zip'] }
+    ]
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('select-project-folder', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('import-project', async (_event, { source, type }) => {
+  try {
+    const projectsDir = path.join(BASE_DIR, 'projects');
+    if (!fs.existsSync(projectsDir)) {
+      fs.mkdirSync(projectsDir, { recursive: true });
+    }
+
+    let projectName;
+    let tempDir = null;
+
+    if (type === 'zip') {
+      // Extract ZIP to temp directory
+      const zip = new AdmZip(source);
+      const entries = zip.getEntries();
+
+      // Find root folder (first non-empty path segment)
+      const rootFolders = new Set();
+      entries.forEach(entry => {
+        const parts = entry.entryName.split('/').filter(Boolean);
+        if (parts.length > 0) rootFolders.add(parts[0]);
+      });
+
+      if (rootFolders.size === 0) {
+        return { success: false, error: 'El archivo ZIP está vacío' };
+      }
+      if (rootFolders.size > 1) {
+        return { success: false, error: 'El ZIP debe contener una sola carpeta de proyecto en la raíz' };
+      }
+
+      projectName = [...rootFolders][0];
+      const projectDir = path.join(projectsDir, projectName);
+
+      if (fs.existsSync(projectDir)) {
+        return { success: false, error: `Ya existe un proyecto con el nombre "${projectName}"` };
+      }
+
+      // Extract to temp location first
+      tempDir = path.join(projectsDir, `__temp_import_${Date.now()}`);
+      fs.mkdirSync(tempDir, { recursive: true });
+      zip.extractAllTo(tempDir, true);
+
+      // Move extracted folder to projects
+      const extractedProjectDir = path.join(tempDir, projectName);
+      if (!fs.existsSync(extractedProjectDir)) {
+        // Maybe the ZIP had files directly without a root folder
+        // Check if tempDir has sprint-like folders
+        const tempEntries = fs.readdirSync(tempDir, { withFileTypes: true });
+        const sprintLike = tempEntries.filter(e => e.isDirectory());
+        if (sprintLike.length === 0) {
+          deleteDir(tempDir);
+          return { success: false, error: 'No se encontraron carpetas de sprint en el ZIP' };
+        }
+        // Move all contents to project dir
+        fs.mkdirSync(projectDir, { recursive: true });
+        tempEntries.forEach(e => {
+          fs.renameSync(path.join(tempDir, e.name), path.join(projectDir, e.name));
+        });
+      } else {
+        fs.renameSync(extractedProjectDir, projectDir);
+      }
+
+      // Cleanup temp
+      deleteDir(tempDir);
+
+    } else if (type === 'folder') {
+      projectName = path.basename(source);
+      const projectDir = path.join(projectsDir, projectName);
+
+      if (fs.existsSync(projectDir)) {
+        return { success: false, error: `Ya existe un proyecto con el nombre "${projectName}"` };
+      }
+
+      // Evitar copiar una carpeta contenedora de la propia aplicación
+      const normalizedSource = path.normalize(source).toLowerCase();
+      const normalizedProjectDir = path.normalize(projectDir).toLowerCase();
+      if (normalizedProjectDir.startsWith(normalizedSource) || normalizedSource.startsWith(normalizedProjectDir)) {
+        return { success: false, error: 'No se puede importar la carpeta raíz de la aplicación o una de sus carpetas contenedoras' };
+      }
+
+      // Validate structure
+      const entries = fs.readdirSync(source, { withFileTypes: true });
+      const hasSprint = entries.some(e => e.isDirectory());
+      if (!hasSprint) {
+        return { success: false, error: 'La carpeta seleccionada no contiene carpetas de sprint' };
+      }
+
+      // Copy folder recursively
+      fs.cpSync(source, projectDir, { recursive: true });
+
+    } else {
+      return { success: false, error: 'Tipo de importación no válido' };
+    }
+
+    // Validate imported structure
+    const projectDir = path.join(projectsDir, projectName);
+    const sprints = fs.readdirSync(projectDir, { withFileTypes: true })
+      .filter(e => e.isDirectory())
+      .map(e => e.name);
+
+    if (sprints.length === 0) {
+      deleteDir(projectDir);
+      return { success: false, error: 'El proyecto importado no contiene carpetas de sprint' };
+    }
+
+    // Count HUs per sprint
+    const structure = {};
+    sprints.forEach(sprint => {
+      const sprintDir = path.join(projectDir, sprint);
+      const hus = fs.readdirSync(sprintDir, { withFileTypes: true })
+        .filter(e => e.isDirectory())
+        .map(e => e.name);
+      structure[sprint] = hus;
+    });
+
+    return {
+      success: true,
+      projectName,
+      sprints,
+      structure
+    };
+
+  } catch (err) {
+    console.error('[Import Project] error:', err);
+    return { success: false, error: err.message };
+  }
 });
 
 ipcMain.handle('upload-file', async (_event, { project, sprint, huName, filePaths }) => {

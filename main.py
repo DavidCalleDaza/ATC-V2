@@ -174,13 +174,30 @@ def cmd_recorder(args):
     """Lanza la aplicación Electron de grabación de pantalla."""
     import subprocess
     import sys
+    import os
+    import shutil
+    
     recorder_dir = BASE_DIR / "recorder"
     if not (recorder_dir / "package.json").exists():
         print("✗ No se encontró recorder/package.json")
         sys.exit(1)
 
     print("Lanzando Screen Recorder...")
-    subprocess.run(["npm", "start"], cwd=str(recorder_dir))
+    # Si estamos en WSL/Linux y existe el binario de Windows electron.exe, lo ejecutamos directamente
+    win_electron = recorder_dir / "node_modules" / "electron" / "dist" / "electron.exe"
+    if sys.platform != "win32" and win_electron.exists():
+        # Asegurar permisos de ejecución (+x) para el binario en Linux
+        os.chmod(str(win_electron), 0o755)
+        # Ejecutar pasándole las banderas para evitar el error de GPU de Chromium bajo WSL/WSLg
+        subprocess.run([
+            str(win_electron), ".",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--disable-software-rasterizer",
+            "--disable-gpu-compositing"
+        ], cwd=str(recorder_dir))
+    else:
+        subprocess.run(["npm", "start"], cwd=str(recorder_dir))
 
 
 # ── Parser principal ───────────────────────────────────────────────────────────
