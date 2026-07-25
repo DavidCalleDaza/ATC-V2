@@ -1676,38 +1676,40 @@ let isDrawing = false;
 let startX = 0, startY = 0;
 let currentRect = null;
 
-canvas.addEventListener('mousedown', (e) => {
+canvas.addEventListener('pointerdown', (e) => {
   if (!expVideoPath) return;
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
   videoEl.pause();
   $('#btn-exp-play').textContent = '▶';
-  
+
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  
+
   startX = (e.clientX - rect.left) * scaleX;
   startY = (e.clientY - rect.top) * scaleY;
   isDrawing = true;
+  console.log('[Annotation] pointerdown', { startX, startY, canvasW: canvas.width, canvasH: canvas.height });
 });
 
-canvas.addEventListener('mousemove', (e) => {
+canvas.addEventListener('pointermove', (e) => {
   if (!isDrawing) return;
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  
+
   const currX = (e.clientX - rect.left) * scaleX;
   const currY = (e.clientY - rect.top) * scaleY;
-  
+
   const x = Math.min(startX, currX);
   const y = Math.min(startY, currY);
   const w = Math.abs(startX - currX);
   const h = Math.abs(startY - currY);
-  
+
   currentRect = { x, y, w, h };
-  
+
   redrawCanvas();
-  // Draw current selection rect
   ctx.strokeStyle = '#79c0ff';
   ctx.lineWidth = 3;
   ctx.setLineDash([6, 4]);
@@ -1715,9 +1717,10 @@ canvas.addEventListener('mousemove', (e) => {
   ctx.setLineDash([]);
 });
 
-canvas.addEventListener('mouseup', () => {
+canvas.addEventListener('pointerup', (e) => {
   if (!isDrawing) return;
   isDrawing = false;
+  console.log('[Annotation] pointerup', { currentRect });
   if (currentRect && currentRect.w > 5 && currentRect.h > 5) {
     $('#annotation-details-form').classList.remove('hidden');
     $('#inp-annotation-label').value = '';
@@ -1725,6 +1728,20 @@ canvas.addEventListener('mouseup', () => {
   } else {
     currentRect = null;
     redrawCanvas();
+  }
+});
+
+canvas.addEventListener('lostpointercapture', () => {
+  if (isDrawing) {
+    isDrawing = false;
+    if (currentRect && currentRect.w > 5 && currentRect.h > 5) {
+      $('#annotation-details-form').classList.remove('hidden');
+      $('#inp-annotation-label').value = '';
+      $('#inp-annotation-label').focus();
+    } else {
+      currentRect = null;
+      redrawCanvas();
+    }
   }
 });
 
