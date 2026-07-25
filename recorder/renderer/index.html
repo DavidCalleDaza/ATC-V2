@@ -139,6 +139,17 @@
             <p style="font-weight: bold; word-break: break-all; margin-bottom: 4px;" id="lbl-video-name"></p>
             <p style="color: #8b949e;" id="lbl-video-duration"></p>
           </div>
+
+          <!-- Saved Evidence List -->
+          <div id="saved-evidence-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--border-color); padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-size: 13px; margin: 0; color: var(--text-color);" data-i18n="exp-evidence-list-title">Saved Evidence</h4>
+              <button id="btn-refresh-evidence" class="btn btn-small btn-secondary" style="font-size: 10px; padding: 2px 6px;">↻</button>
+            </div>
+            <div id="evidence-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+              <span id="lbl-no-evidence" style="font-size: 12px; color: #8b949e;" data-i18n="exp-no-evidence">No saved evidence yet. Trim or screenshot to save.</span>
+            </div>
+          </div>
         </div>
 
         <!-- Center: Video Player & Bounding Box Drawer -->
@@ -337,6 +348,7 @@
       <h2 data-i18n="phase4-title">4. Recording Finished</h2>
       <div id="done-status" class="done-status"></div>
       <div class="phase-actions">
+        <button id="btn-exp-continue-editing" class="btn btn-primary hidden" data-i18n="exp-btn-continue">Continue Editing</button>
         <button id="btn-record-another" class="btn btn-primary" data-i18n="btn-back-home">Back to Home</button>
       </div>
     </section>
@@ -443,6 +455,44 @@
       <div class="modal-actions" style="margin-top: 20px;">
         <button id="btn-exp-save-modal-cancel" class="btn btn-secondary" data-i18n="btn-back">Cancel</button>
         <button id="btn-exp-save-modal-confirm" class="btn btn-primary" data-i18n="btn-save">Save & Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evidence View Modal -->
+  <div id="modal-evidence-view-overlay" class="modal-overlay hidden">
+    <div class="modal evidence-view-modal" style="width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 id="evidence-view-title" style="margin: 0; font-size: 16px;" data-i18n="exp-evidence-view-title">Evidence Detail</h3>
+        <button id="btn-evidence-view-close" class="btn btn-small btn-secondary">✕</button>
+      </div>
+
+      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Screenshot Image -->
+        <div style="background: #000; border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 200px;">
+          <img id="evidence-view-image" style="max-width: 100%; max-height: 45vh; object-fit: contain;" src="">
+        </div>
+
+        <!-- Description -->
+        <div id="evidence-view-description" style="font-size: 12px; color: #8b949e; padding: 0 4px;"></div>
+
+        <!-- Marked Elements -->
+        <div>
+          <h4 style="font-size: 13px; margin: 0 0 8px 0; color: var(--accent-color);" data-i18n="exp-evidence-marked-elements">Marked Elements</h4>
+          <div id="evidence-view-annotations" style="display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
+            <span id="lbl-no-view-annotations" style="font-size: 12px; color: #8b949e;" data-i18n="exp-no-annotations">No marked elements yet.</span>
+          </div>
+        </div>
+
+        <!-- Add Annotation Form -->
+        <div class="evidence-view-add-form">
+          <input type="text" id="evidence-view-new-label" placeholder="New element name..." style="flex: 1; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+          <button id="btn-evidence-view-add" class="btn btn-small btn-primary" data-i18n="exp-btn-add">Add</button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <button id="btn-evidence-view-close-bottom" class="btn btn-secondary" data-i18n="btn-back">Close</button>
       </div>
     </div>
   </div>

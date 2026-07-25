@@ -371,6 +371,108 @@ ipcMain.handle('save-annotated-frame', async (_event, { project, sprint, huName,
   }
 });
 
+ipcMain.handle('list-hu-evidence', async (_event, { project, sprint, huName }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    if (!fs.existsSync(huDir)) return { success: true, files: [] };
+
+    const allFiles = fs.readdirSync(huDir);
+    const evidenceFiles = allFiles.filter(f =>
+      /^exploratory_.*\.mp4$/.test(f) ||
+      /^finding_.*\.(png|json)$/.test(f)
+    );
+
+    const files = evidenceFiles.map(f => {
+      const fullPath = path.join(huDir, f);
+      const stat = fs.statSync(fullPath);
+      const isVideo = f.endsWith('.mp4');
+      const isScreenshot = f.endsWith('.png');
+      const isMeta = f.endsWith('.json');
+
+      // Parse type from filename: finding_bug_12345.png → bug
+      let type = 'unknown';
+      const matchVideo = f.match(/^exploratory_(.+)_\d+\.mp4$/);
+      const matchFinding = f.match(/^finding_(.+)_\d+\.(png|json)$/);
+      if (matchVideo) type = matchVideo[1];
+      else if (matchFinding) type = matchFinding[1];
+
+      // Group: match .mp4 with its .png + .json pair by timestamp
+      const tsMatch = f.match(/_(\d+)\.(mp4|png|json)$/);
+      const timestamp = tsMatch ? parseInt(tsMatch[1]) : 0;
+
+      return {
+        name: f,
+        fullPath,
+        isVideo,
+        isScreenshot,
+        isMeta,
+        type,
+        timestamp,
+        size: stat.size,
+        createdAt: stat.mtime.toISOString()
+      };
+    });
+
+    // Group by timestamp (same trim event = same timestamp)
+    const groups = {};
+    files.forEach(f => {
+      if (!groups[f.timestamp]) {
+        groups[f.timestamp] = { timestamp: f.timestamp, type: f.type, video: null, screenshot: null, meta: null };
+      }
+      if (f.isVideo) groups[f.timestamp].video = f;
+      else if (f.isScreenshot) groups[f.timestamp].screenshot = f;
+      else if (f.isMeta) groups[f.timestamp].meta = f;
+    });
+
+    const grouped = Object.values(groups).sort((a, b) => b.timestamp - a.timestamp);
+
+    return { success: true, grouped };
+  } catch (err) {
+    console.error('[List Evidence] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('delete-hu-evidence', async (_event, { project, sprint, huName, fileName }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    const filePath = path.join(huDir, fileName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return { success: true };
+    }
+    return { success: false, error: 'File not found' };
+  } catch (err) {
+    console.error('[Delete Evidence] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('read-evidence-meta', async (_event, { project, sprint, huName, metaFileName }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    const jsonPath = path.join(huDir, metaFileName);
+    if (!fs.existsSync(jsonPath)) return { success: false, error: 'Meta file not found' };
+    const content = fs.readFileSync(jsonPath, 'utf-8');
+    return { success: true, metadata: JSON.parse(content) };
+  } catch (err) {
+    console.error('[Read Evidence Meta] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('update-evidence-meta', async (_event, { project, sprint, huName, metaFileName, metadata }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    const jsonPath = path.join(huDir, metaFileName);
+    fs.writeFileSync(jsonPath, JSON.stringify(metadata, null, 2));
+    return { success: true };
+  } catch (err) {
+    console.error('[Update Evidence Meta] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
 // ─── Desktop Capturer ──────────────────────────────────────────────────────────
 ipcMain.handle('get-screen-sources', async () => {
   const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1920, height: 1080 } });

@@ -1418,6 +1418,7 @@ let expSaveAction = null; // 'trim' or 'frame'
 $('#btn-exploratory').addEventListener('click', async () => {
   showPhase('exploratory');
   await populateExploratoryProjects();
+  renderEvidenceList();
 });
 
 $('#btn-exploratory-back').addEventListener('click', () => {
@@ -1472,12 +1473,14 @@ $('#exp-project-select').addEventListener('change', async () => {
   if (!$('#modal-exploratory-save-overlay').classList.contains('hidden')) {
     await populateSaveHuDropdown();
   }
+  renderEvidenceList();
 });
 
 $('#exp-sprint-select').addEventListener('change', async () => {
   if (!$('#modal-exploratory-save-overlay').classList.contains('hidden')) {
     await populateSaveHuDropdown();
   }
+  renderEvidenceList();
 });
 
 // Drag & Drop / Select Video
@@ -1554,6 +1557,234 @@ function loadExploratoryVideo(filePath) {
     setTimeout(alignCanvasWithVideo, 200);
   };
 }
+
+// ── Saved Evidence List ──
+async function renderEvidenceList() {
+  const project = $('#exp-project-select').value;
+  const sprint = $('#exp-sprint-select').value;
+  // Pick HU from the save modal dropdown if open, else try main HU selector
+  const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
+
+  const container = $('#evidence-list-container');
+  const noEvidence = $('#lbl-no-evidence');
+  container.querySelectorAll('.evidence-item').forEach(el => el.remove());
+
+  if (!project || !sprint || !huName) {
+    noEvidence.classList.remove('hidden');
+    return;
+  }
+
+  const res = await window.api.listHuEvidence({ project, sprint, huName });
+  if (!res.success || !res.grouped || res.grouped.length === 0) {
+    noEvidence.classList.remove('hidden');
+    return;
+  }
+
+  noEvidence.classList.add('hidden');
+
+  const typeLabels = {
+    bug: '🐛 Bug',
+    feature: '✨ Feature',
+    testcase: '📋 Test Case',
+    general: '📝 General'
+  };
+
+  res.grouped.forEach(group => {
+    const item = document.createElement('div');
+    item.className = 'evidence-item';
+
+    const typeLabel = typeLabels[group.type] || group.type;
+    const ts = new Date(group.timestamp);
+    const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const hasVideo = !!group.video;
+    const hasScreenshot = !!group.screenshot;
+
+    let icons = '';
+    if (hasVideo) icons += '<span title="Video clip">🎬</span> ';
+    if (hasScreenshot) icons += '<span title="Screenshot">🖼️</span> ';
+
+    let sizeStr = '';
+    if (hasVideo) {
+      const mb = (group.video.size / (1024 * 1024)).toFixed(1);
+      sizeStr = `${mb} MB`;
+    }
+
+    item.innerHTML = `
+      <div class="evidence-item-info">
+        <div class="evidence-item-type">${icons} ${typeLabel}</div>
+        <div class="evidence-item-meta">${timeStr} ${sizeStr ? '· ' + sizeStr : ''}</div>
+      </div>
+      <div class="evidence-item-actions">
+        ${hasScreenshot ? `<button class="btn btn-small btn-secondary evidence-view-btn" title="View evidence">👁</button>` : ''}
+        ${hasVideo ? `<button class="btn btn-small btn-primary evidence-load-btn" title="Load clip into editor">▶</button>` : ''}
+        <button class="btn btn-small btn-secondary evidence-delete-btn" title="Delete evidence">✕</button>
+      </div>
+    `;
+
+    // View evidence
+    if (hasScreenshot) {
+      item.querySelector('.evidence-view-btn').addEventListener('click', () => {
+        openEvidenceViewModal(group);
+      });
+    }
+
+    // Load video clip
+    if (hasVideo) {
+      item.querySelector('.evidence-load-btn').addEventListener('click', () => {
+        loadSavedClip(group.video.fullPath);
+      });
+    }
+
+    // Delete
+    item.querySelector('.evidence-delete-btn').addEventListener('click', async () => {
+      if (!confirm(currentLang === 'es' ? '¿Eliminar esta evidencia?' : 'Delete this evidence?')) return;
+      if (group.video) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.video.name });
+      if (group.screenshot) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.screenshot.name });
+      if (group.meta) await window.api.deleteHuEvidence({ project, sprint, huName, fileName: group.meta.name });
+      renderEvidenceList();
+    });
+
+    container.appendChild(item);
+  });
+}
+
+function loadSavedClip(filePath) {
+  loadExploratoryVideo(filePath);
+}
+
+// Evidence list refresh
+$('#btn-refresh-evidence').addEventListener('click', () => renderEvidenceList());
+
+// ── Evidence View Modal ──
+let currentViewGroup = null;
+let currentViewMetadata = null;
+
+async function openEvidenceViewModal(group) {
+  currentViewGroup = group;
+  const project = $('#exp-project-select').value;
+  const sprint = $('#exp-sprint-select').value;
+  const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
+
+  if (!group.screenshot) return;
+
+  // Load screenshot image via file:// protocol
+  const imgPath = group.screenshot.fullPath;
+  const resolvedPath = 'file:///' + imgPath.replace(/\\/g, '/');
+  $('#evidence-view-image').src = resolvedPath;
+
+  // Title
+  const typeLabels = { bug: '🐛 Bug', feature: '✨ Feature', testcase: '📋 Test Case', general: '📝 General' };
+  $('#evidence-view-title').textContent = `${typeLabels[group.type] || group.type} — Detail`;
+
+  // Load metadata
+  if (group.meta) {
+    const res = await window.api.readEvidenceMeta({ project, sprint, huName, metaFileName: group.meta.name });
+    if (res.success) {
+      currentViewMetadata = res.metadata;
+      $('#evidence-view-description').textContent = res.metadata.description || '';
+      renderEvidenceViewAnnotations(res.metadata.annotations || []);
+    } else {
+      currentViewMetadata = null;
+      $('#evidence-view-description').textContent = '';
+      renderEvidenceViewAnnotations([]);
+    }
+  } else {
+    currentViewMetadata = null;
+    $('#evidence-view-description').textContent = '';
+    renderEvidenceViewAnnotations([]);
+  }
+
+  // Clear input
+  $('#evidence-view-new-label').value = '';
+
+  // Show modal
+  $('#modal-evidence-view-overlay').classList.remove('hidden');
+}
+
+function renderEvidenceViewAnnotations(annotations) {
+  const container = $('#evidence-view-annotations');
+  const noLabel = $('#lbl-no-view-annotations');
+  container.querySelectorAll('.evidence-view-annotation-item').forEach(el => el.remove());
+
+  if (!annotations || annotations.length === 0) {
+    noLabel.classList.remove('hidden');
+    return;
+  }
+
+  noLabel.classList.add('hidden');
+
+  annotations.forEach((ann, idx) => {
+    const item = document.createElement('div');
+    item.className = 'evidence-view-annotation-item';
+
+    const hasCoords = ann.x !== 0 || ann.y !== 0;
+    const coordsStr = hasCoords ? `(${ann.x}, ${ann.y} ${ann.w}×${ann.h})` : '';
+
+    item.innerHTML = `
+      <div class="ev-ann-info">
+        <span class="ev-ann-label">${ann.label}</span>
+        ${coordsStr ? `<span class="ev-ann-coords">${coordsStr}</span>` : ''}
+      </div>
+      <button class="btn btn-small btn-secondary ev-ann-delete" title="Remove">✕</button>
+    `;
+
+    // Delete annotation
+    item.querySelector('.ev-ann-delete').addEventListener('click', async () => {
+      if (!currentViewMetadata || !currentViewGroup) return;
+      const project = $('#exp-project-select').value;
+      const sprint = $('#exp-sprint-select').value;
+      const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
+
+      currentViewMetadata.annotations.splice(idx, 1);
+      await window.api.updateEvidenceMeta({
+        project, sprint, huName,
+        metaFileName: currentViewGroup.meta.name,
+        metadata: currentViewMetadata
+      });
+      renderEvidenceViewAnnotations(currentViewMetadata.annotations);
+    });
+
+    container.appendChild(item);
+  });
+}
+
+// Add annotation to evidence
+$('#btn-evidence-view-add').addEventListener('click', async () => {
+  const label = $('#evidence-view-new-label').value.trim();
+  if (!label) return;
+  if (!currentViewMetadata || !currentViewGroup) return;
+
+  const project = $('#exp-project-select').value;
+  const sprint = $('#exp-sprint-select').value;
+  const huName = $('#exp-save-hu-select')?.value || state.selectedHu?.name;
+
+  currentViewMetadata.annotations.push({ x: 0, y: 0, w: 0, h: 0, label });
+  await window.api.updateEvidenceMeta({
+    project, sprint, huName,
+    metaFileName: currentViewGroup.meta.name,
+    metadata: currentViewMetadata
+  });
+
+  renderEvidenceViewAnnotations(currentViewMetadata.annotations);
+  $('#evidence-view-new-label').value = '';
+});
+
+// Enter key to add
+$('#evidence-view-new-label').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('#btn-evidence-view-add').click();
+});
+
+// Close modal
+$('#btn-evidence-view-close').addEventListener('click', () => {
+  $('#modal-evidence-view-overlay').classList.add('hidden');
+  currentViewGroup = null;
+  currentViewMetadata = null;
+});
+$('#btn-evidence-view-close-bottom').addEventListener('click', () => {
+  $('#modal-evidence-view-overlay').classList.add('hidden');
+  currentViewGroup = null;
+  currentViewMetadata = null;
+});
 
 // Sliders and Seek Logic
 function updateTrimTimeline() {
@@ -2113,6 +2344,7 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
         <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
         <p>Screenshot: <strong>${metaRes.pngName}</strong></p>
       `;
+      $('#btn-exp-continue-editing').classList.remove('hidden');
     } else {
       // frame only action
       const tempCanvas = document.createElement('canvas');
@@ -2157,15 +2389,29 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
         <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
         <p>Screenshot: <strong>${metaRes.pngName}</strong></p>
       `;
+      $('#btn-exp-continue-editing').classList.remove('hidden');
     }
   } catch (err) {
     console.error('Error saving exploratory evidence:', err);
+    $('#btn-exp-continue-editing').classList.add('hidden');
     doneStatus.innerHTML = `
       <div style="font-size: 40px; color: #f85149; margin-bottom: 20px;">⚠️</div>
       <h3>${currentLang === 'es' ? 'Error al procesar' : 'Error in processing'}</h3>
       <p style="color: #f85149">${err.message}</p>
     `;
   }
+});
+
+// Continue Editing → back to exploratory workspace
+$('#btn-exp-continue-editing').addEventListener('click', async () => {
+  $('#btn-exp-continue-editing').classList.add('hidden');
+  showPhase('exploratory');
+  await renderEvidenceList();
+});
+
+// Hide continue button when going back to home
+$('#btn-record-another').addEventListener('click', () => {
+  $('#btn-exp-continue-editing').classList.add('hidden');
 });
 
 renderProjects();

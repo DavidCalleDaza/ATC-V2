@@ -26,4 +26,8 @@ contextBridge.exposeInMainWorld('api', {
   selectVideoFile: () => ipcRenderer.invoke('select-video-file'),
   trimVideo: (data) => ipcRenderer.invoke('trim-video', data),
   saveAnnotatedFrame: (data) => ipcRenderer.invoke('save-annotated-frame', data),
+  listHuEvidence: (data) => ipcRenderer.invoke('list-hu-evidence', data),
+  deleteHuEvidence: (data) => ipcRenderer.invoke('delete-hu-evidence', data),
+  readEvidenceMeta: (data) => ipcRenderer.invoke('read-evidence-meta', data),
+  updateEvidenceMeta: (data) => ipcRenderer.invoke('update-evidence-meta', data),
 });
