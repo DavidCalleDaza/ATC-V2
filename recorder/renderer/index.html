@@ -16,6 +16,7 @@
       <h3 style="font-size: 16px; color: var(--accent-color); margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;" data-i18n="sidebar-actions-title">Actions</h3>
       <div id="sidebar-actions-container" style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: flex-start; padding-top: 10px;">
         <button id="btn-upload-files" class="btn btn-secondary w-full hidden" data-i18n="btn-upload" style="width: 100%;">Attach / Upload Files</button>
+        <button id="btn-exploratory" class="btn btn-secondary w-full" data-i18n="btn-exploratory" style="width: 100%; margin-top: 5px;">🔍 Exploratory Testing</button>
         <button id="btn-start-flow" class="btn btn-primary w-full hidden" data-i18n="btn-start-flow" style="width: 100%; margin-top: 5px;">➜ Go to Record Evidences</button>
       </div>
 
@@ -107,6 +108,126 @@
           </div>
         </aside>
       </div>
+
+    <!-- Phase Exploratory -->
+    <section id="phase-exploratory" class="phase hidden" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="margin: 0; border: none;" data-i18n="phase-exploratory-title">Exploratory Testing Workspace</h2>
+        <button id="btn-exploratory-back" class="btn btn-secondary" data-i18n="btn-back">Back</button>
+      </div>
+
+      <div style="display: flex; gap: 20px; flex: 1; min-height: 0;">
+        <!-- Left: Upload and selectors -->
+        <div style="width: 280px; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid var(--border-color); padding-right: 20px;">
+          <div>
+            <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-project">Project</label>
+            <select id="exp-project-select" style="width: 100%; min-width: auto;"></select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-sprint">Sprint</label>
+            <select id="exp-sprint-select" style="width: 100%; min-width: auto;"></select>
+          </div>
+
+          <!-- Video Drop & Select -->
+          <div id="video-drag-zone" style="flex: 1; border: 2px dashed var(--border-color); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; cursor: pointer; background: rgba(22, 27, 34, 0.5); transition: border-color 0.2s;">
+            <span style="font-size: 32px; margin-bottom: 10px;">🎥</span>
+            <p style="font-size: 13px; color: #8b949e; margin-bottom: 10px;" data-i18n="exp-drag-desc">Drag exploratory video here or click to browse</p>
+            <button class="btn btn-small btn-secondary" data-i18n="exp-select-btn">Browse Video</button>
+          </div>
+          
+          <div id="loaded-video-info" class="hidden" style="background: rgba(88, 166, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-size: 12px;">
+            <p style="font-weight: bold; word-break: break-all; margin-bottom: 4px;" id="lbl-video-name"></p>
+            <p style="color: #8b949e;" id="lbl-video-duration"></p>
+          </div>
+        </div>
+
+        <!-- Center: Video Player & Bounding Box Drawer -->
+        <div style="flex: 2; display: flex; flex-direction: column; gap: 15px; min-width: 0;">
+          <div style="position: relative; flex: 1; background: #000; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <video id="exploratory-video" style="max-width: 100%; max-height: 100%; object-fit: contain;"></video>
+            <canvas id="annotation-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10;"></canvas>
+            
+            <div id="canvas-instructions" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 5px 10px; font-size: 11px; border-radius: 4px; pointer-events: none; z-index: 12;" data-i18n="exp-canvas-help">
+              Drag on screen to draw highlights/annotated areas
+            </div>
+          </div>
+
+          <!-- Video Playback & Trimming Controls -->
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+            <!-- Player Seek & Range Timeline -->
+            <div style="display: flex; align-items: center; gap: 12px; position: relative;">
+              <button id="btn-exp-play" class="btn btn-icon" style="font-size: 18px; color: var(--text-color);">▶</button>
+              <span id="exp-current-time" style="font-family: monospace; font-size: 13px; min-width: 45px;">00:00</span>
+              
+              <!-- Timeline slider dual track container -->
+              <div style="position: relative; flex: 1; height: 24px; display: flex; align-items: center;">
+                <div style="position: absolute; width: 100%; height: 6px; background: #21262d; border-radius: 3px;"></div>
+                <div id="trim-highlight-bar" style="position: absolute; height: 6px; background: rgba(88, 166, 255, 0.4); border-radius: 3px; z-index: 1; pointer-events: none;"></div>
+                
+                <!-- Double range sliders using dual-input hack or simple mouse drag, let's use two custom styling inputs -->
+                <input type="range" id="exp-trim-min" min="0" max="100" value="0" style="position: absolute; width: 100%; z-index: 2; height: 6px; background: transparent; pointer-events: none; -webkit-appearance: none; outline: none;">
+                <input type="range" id="exp-trim-max" min="0" max="100" value="100" style="position: absolute; width: 100%; z-index: 3; height: 6px; background: transparent; pointer-events: none; -webkit-appearance: none; outline: none;">
+                <input type="range" id="exp-video-seek" min="0" max="100" value="0" style="position: absolute; width: 100%; z-index: 4; height: 6px; background: transparent; -webkit-appearance: none; outline: none;">
+              </div>
+              
+              <span id="exp-total-duration" style="font-family: monospace; font-size: 13px; min-width: 45px;">00:00</span>
+            </div>
+
+            <!-- Trim Inputs -->
+            <div style="display: flex; gap: 15px; align-items: center; justify-content: space-between; font-size: 13px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <span data-i18n="exp-trim-start">Trim Start:</span>
+                <input type="text" id="inp-trim-start" value="00:00" style="width: 65px; text-align: center; font-family: monospace; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px;">
+                <button id="btn-set-trim-start" class="btn btn-small btn-secondary" data-i18n="exp-set-btn">Set Current</button>
+              </div>
+
+              <!-- Speed Control -->
+              <div style="display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.2); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <span data-i18n="exp-speed-label" style="color: #8b949e;">Speed:</span>
+                <span id="exp-speed-val" style="font-weight: bold; color: var(--accent-color); min-width: 32px; display: inline-block; text-align: right;">1.0×</span>
+                <input type="range" id="exp-video-speed" min="0.25" max="2.5" step="0.25" value="1.0" style="width: 75px; cursor: pointer; height: 4px; border-radius: 2px; -webkit-appearance: none; background: #21262d; outline: none;">
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <span data-i18n="exp-trim-end">Trim End:</span>
+                <input type="text" id="inp-trim-end" value="00:00" style="width: 65px; text-align: center; font-family: monospace; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px;">
+                <button id="btn-set-trim-end" class="btn btn-small btn-secondary" data-i18n="exp-set-btn">Set Current</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Annotations & Actions -->
+        <div style="width: 320px; display: flex; flex-direction: column; gap: 15px; border-left: 1px solid var(--border-color); padding-left: 20px;">
+          <!-- Annotation label form -->
+          <div id="annotation-details-form" class="hidden" style="background: rgba(88,166,255,0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <h4 style="font-size: 13px; color: var(--accent-color); margin: 0;" data-i18n="exp-add-annotation">New Highlight Annotation</h4>
+            <input type="text" id="inp-annotation-label" placeholder="e.g., Save Button, Username Input" style="width: 100%; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button id="btn-cancel-annotation" class="btn btn-small btn-secondary" data-i18n="btn-back">Cancel</button>
+              <button id="btn-save-annotation" class="btn btn-small btn-primary" data-i18n="btn-save">Add</button>
+            </div>
+          </div>
+
+          <!-- List of Annotations in this frame -->
+          <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-size: 14px; margin: 0;" data-i18n="exp-annotations-list">Marked Elements</h4>
+              <button id="btn-clear-annotations" class="btn btn-small btn-secondary" style="font-size: 10px;" data-i18n="exp-clear-btn">Clear All</button>
+            </div>
+            <div id="annotations-list-container" style="flex: 1; overflow-y: auto; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <span id="lbl-no-annotations" style="font-size: 12px; color: #8b949e;" data-i18n="exp-no-annotations">No marked elements yet. Draw on video to add.</span>
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <button id="btn-exp-trim-segment" class="btn btn-primary w-full" data-i18n="exp-btn-trim" disabled>✂ Trim & Save Segment</button>
+            <button id="btn-exp-save-frame" class="btn btn-secondary w-full" data-i18n="exp-btn-frame" disabled>📸 Save Annotated Screenshot</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Phase 1: Review & Generate Audio -->
     <section id="phase-review" class="phase hidden">
@@ -233,6 +354,95 @@
       <div class="modal-actions">
         <button id="btn-modal-cancel" class="btn btn-secondary" data-i18n="btn-back">Cancel</button>
         <button id="btn-modal-save" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exploratory Save Modal -->
+  <div id="modal-exploratory-save-overlay" class="modal-overlay hidden">
+    <div class="modal" style="width: 480px;">
+      <h3 id="exp-save-modal-title" data-i18n="exp-save-title">Save Exploratory Evidence</h3>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+        <!-- Destination Project selector -->
+        <div>
+          <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-project">Project</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="exp-save-project-select" style="flex: 1; min-width: auto; padding: 6px; height: 32px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);"></select>
+            <button id="btn-exp-new-project" class="btn btn-small btn-secondary" style="padding: 4px 10px;">+ New</button>
+          </div>
+        </div>
+
+        <!-- Inline New Project input (initially hidden) -->
+        <div id="exp-new-project-inline-container" class="hidden" style="background: rgba(88, 166, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: block; font-size: 11px; color: var(--accent-color);" data-i18n="modal-new-project">New Project</label>
+          <input type="text" id="exp-new-project-input" placeholder="e.g. Project_Alpha" style="width: 100%; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; outline: none;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button id="btn-exp-new-project-cancel" class="btn btn-small btn-secondary" data-i18n="btn-back">Cancel</button>
+            <button id="btn-exp-new-project-save" class="btn btn-small btn-primary" data-i18n="btn-save">Create</button>
+          </div>
+        </div>
+
+        <!-- Destination Sprint selector -->
+        <div>
+          <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-sprint">Sprint</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="exp-save-sprint-select" style="flex: 1; min-width: auto; padding: 6px; height: 32px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);"></select>
+            <button id="btn-exp-new-sprint" class="btn btn-small btn-secondary" style="padding: 4px 10px;">+ New</button>
+          </div>
+        </div>
+
+        <!-- Inline New Sprint input (initially hidden) -->
+        <div id="exp-new-sprint-inline-container" class="hidden" style="background: rgba(88, 166, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: block; font-size: 11px; color: var(--accent-color);" data-i18n="modal-new-sprint">New Sprint</label>
+          <input type="text" id="exp-new-sprint-input" placeholder="e.g. sprint-05" style="width: 100%; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; outline: none;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button id="btn-exp-new-sprint-cancel" class="btn btn-small btn-secondary" data-i18n="btn-back">Cancel</button>
+            <button id="btn-exp-new-sprint-save" class="btn btn-small btn-primary" data-i18n="btn-save">Create</button>
+          </div>
+        </div>
+
+        <!-- Destination HU selector -->
+        <div>
+          <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-save-hu">Select Destination User Story (HU)</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="exp-save-hu-select" style="flex: 1; min-width: auto; padding: 6px; height: 32px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);"></select>
+            <button id="btn-exp-new-hu" class="btn btn-small btn-secondary" style="padding: 4px 10px;">+ New HU</button>
+          </div>
+        </div>
+
+        <!-- Inline New HU input (initially hidden) -->
+        <div id="exp-new-hu-inline-container" class="hidden" style="background: rgba(88, 166, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: block; font-size: 11px; color: var(--accent-color);" data-i18n="exp-new-hu-label">Create New User Story (HU)</label>
+          <input type="text" id="exp-new-hu-input" placeholder="e.g. HU-005 Login Form Validation" style="width: 100%; padding: 6px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; outline: none;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button id="btn-exp-new-hu-cancel" class="btn btn-small btn-secondary" data-i18n="btn-back">Cancel</button>
+            <button id="btn-exp-new-hu-save" class="btn btn-small btn-primary" data-i18n="btn-save">Create</button>
+          </div>
+        </div>
+
+        <!-- Finding Type Selector -->
+        <div>
+          <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-save-type">Type of Finding</label>
+          <select id="exp-save-type-select" style="width: 100%; min-width: auto; padding: 6px; height: 32px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);">
+            <option value="bug">🐛 Bug / Defect</option>
+            <option value="feature">✨ User Story functionality</option>
+            <option value="testcase">📋 Test Case Evidence</option>
+            <option value="general">📝 General Observation</option>
+          </select>
+        </div>
+
+        <!-- Text Description -->
+        <div>
+          <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-save-desc">Observation Description</label>
+          <textarea id="exp-save-description" placeholder="Describe the finding or action recorded in this clip/screenshot..." style="width: 100%; height: 80px; padding: 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; resize: none; outline: none; transition: border-color 0.2s;"></textarea>
+        </div>
+
+        <!-- Extra details (e.g. duration or screenshot metadata) -->
+        <div id="exp-save-extra-info" style="font-size: 11px; color: #8b949e; border-top: 1px solid var(--border-color); padding-top: 8px;"></div>
+      </div>
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button id="btn-exp-save-modal-cancel" class="btn btn-secondary" data-i18n="btn-back">Cancel</button>
+        <button id="btn-exp-save-modal-confirm" class="btn btn-primary" data-i18n="btn-save">Save & Export</button>
       </div>
     </div>
   </div>

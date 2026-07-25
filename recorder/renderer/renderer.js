@@ -60,6 +60,27 @@ const translations = {
     "modal-new-hu": "New User Story",
     "input-placeholder-name": "Enter name...",
     "window-title": "Automatic test case — Evidence Recorder",
+    "btn-exploratory": "🔍 Exploratory Testing",
+    "phase-exploratory-title": "Exploratory Testing Workspace",
+    "exp-project": "Project",
+    "exp-sprint": "Sprint",
+    "exp-drag-desc": "Drag exploratory video here or click to browse",
+    "exp-select-btn": "Browse Video",
+    "exp-canvas-help": "Drag on screen to draw highlights/annotated areas",
+    "exp-trim-start": "Trim Start:",
+    "exp-trim-end": "Trim End:",
+    "exp-set-btn": "Set Current",
+    "exp-add-annotation": "New Highlight Annotation",
+    "exp-annotations-list": "Marked Elements",
+    "exp-clear-btn": "Clear All",
+    "exp-no-annotations": "No marked elements yet. Draw on video to add.",
+    "exp-btn-trim": "✂ Trim & Save Segment",
+    "exp-btn-frame": "📸 Save Annotated Screenshot",
+    "exp-save-title": "Save Exploratory Evidence",
+    "exp-save-hu": "Select Destination User Story (HU)",
+    "exp-new-hu-label": "Create New User Story (HU)",
+    "exp-save-desc": "Observation Description",
+    "exp-speed-label": "Speed:"
   },
   es: {
     "app-title": "Automatización de casos de prueba",
@@ -121,6 +142,27 @@ const translations = {
     "modal-new-hu": "Nueva Historia (HU)",
     "input-placeholder-name": "Escribe aquí...",
     "window-title": "Automatic test case — Grabador de Evidencias",
+    "btn-exploratory": "🔍 Pruebas Exploratorias",
+    "phase-exploratory-title": "Espacio de Trabajo de Pruebas Exploratorias",
+    "exp-project": "Proyecto",
+    "exp-sprint": "Sprint",
+    "exp-drag-desc": "Arrastra el video exploratorio aquí o haz clic para buscarlo",
+    "exp-select-btn": "Buscar Video",
+    "exp-canvas-help": "Arrastra sobre la pantalla para dibujar marcas/anotaciones",
+    "exp-trim-start": "Inicio Recorte:",
+    "exp-trim-end": "Fin Recorte:",
+    "exp-set-btn": "Fijar Actual",
+    "exp-add-annotation": "Nueva Anotación Destacada",
+    "exp-annotations-list": "Elementos Marcados",
+    "exp-clear-btn": "Limpiar Todo",
+    "exp-no-annotations": "No hay elementos marcados aún. Dibuja sobre el video para agregar.",
+    "exp-btn-trim": "✂ Recortar y Guardar Segmento",
+    "exp-btn-frame": "📸 Guardar Captura Anotada",
+    "exp-save-title": "Guardar Evidencia Exploratoria",
+    "exp-save-hu": "Selecciona Historia de Usuario (HU) Destino",
+    "exp-new-hu-label": "Crear Nueva Historia de Usuario (HU)",
+    "exp-save-desc": "Descripción de Observaciones",
+    "exp-speed-label": "Velocidad:"
   }
 };
 
@@ -192,6 +234,7 @@ const phases = {
   region: $('#phase-region'),
   recording: $('#phase-recording'),
   done: $('#phase-done'),
+  exploratory: $('#phase-exploratory'),
 };
 
 function showPhase(name) {
@@ -772,6 +815,41 @@ function openConfirmModal(title, message, onConfirm) {
   $('#btn-modal-save').focus();
 }
 
+function showDarkAlert(title, message) {
+  $('#modal-title').textContent = title;
+  mInput.classList.add('hidden');
+  
+  let msgEl = document.getElementById('modal-message');
+  if (!msgEl) {
+    msgEl = document.createElement('p');
+    msgEl.id = 'modal-message';
+    msgEl.style.marginBottom = '20px';
+    msgEl.style.color = 'var(--text-color)';
+    msgEl.style.lineHeight = '1.5';
+    mInput.parentNode.appendChild(msgEl);
+  }
+  msgEl.classList.remove('hidden');
+  msgEl.textContent = message;
+  
+  $('#btn-modal-cancel').classList.add('hidden');
+  const saveBtn = $('#btn-modal-save');
+  const oldText = saveBtn.textContent;
+  saveBtn.textContent = 'OK';
+  
+  modalCallback = () => {
+    $('#btn-modal-cancel').classList.remove('hidden');
+    saveBtn.textContent = oldText;
+  };
+  
+  modal.classList.remove('hidden');
+  saveBtn.focus();
+}
+
+window.alert = function (message) {
+  const title = translations[currentLang]['app-title'] || 'Alert';
+  showDarkAlert(title, message);
+};
+
 $('#btn-modal-cancel').onclick = () => modal.classList.add('hidden');
 $('#btn-modal-save').onclick = async () => {
   const isConfirm = mInput.classList.contains('hidden');
@@ -1330,6 +1408,748 @@ if (window.api && window.api.platform === 'win32') {
 } else {
   $('#titlebar').style.display = 'none';
 }
+
+// ── Exploratory Testing Variables & Logic ──
+let expVideoPath = null;
+let currentAnnotations = [];
+let expSaveAction = null; // 'trim' or 'frame'
+
+// Navigation
+$('#btn-exploratory').addEventListener('click', async () => {
+  showPhase('exploratory');
+  await populateExploratoryProjects();
+});
+
+$('#btn-exploratory-back').addEventListener('click', () => {
+  const video = $('#exploratory-video');
+  video.pause();
+  $('#btn-exp-play').textContent = '▶';
+  
+  showPhase('dashboard');
+  renderProjects();
+  renderSprints();
+  renderHus();
+});
+
+// Dropdown Sync
+async function populateExploratoryProjects() {
+  const select = $('#exp-project-select');
+  select.innerHTML = '';
+  const projects = await window.api.getProjects();
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  });
+  if (state.project && projects.includes(state.project)) {
+    select.value = state.project;
+  }
+  await updateExploratorySprints();
+}
+
+async function updateExploratorySprints() {
+  const project = $('#exp-project-select').value;
+  const select = $('#exp-sprint-select');
+  select.innerHTML = '';
+  if (!project) return;
+  const sprints = await window.api.getSprints(project);
+  sprints.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    select.appendChild(opt);
+  });
+  if (state.sprint && sprints.includes(state.sprint)) {
+    select.value = state.sprint;
+  } else if (sprints.length > 0) {
+    select.value = sprints[0];
+  }
+}
+
+$('#exp-project-select').addEventListener('change', async () => {
+  await updateExploratorySprints();
+  if (!$('#modal-exploratory-save-overlay').classList.contains('hidden')) {
+    await populateSaveHuDropdown();
+  }
+});
+
+$('#exp-sprint-select').addEventListener('change', async () => {
+  if (!$('#modal-exploratory-save-overlay').classList.contains('hidden')) {
+    await populateSaveHuDropdown();
+  }
+});
+
+// Drag & Drop / Select Video
+const dragZone = $('#video-drag-zone');
+dragZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dragZone.classList.add('dragover');
+});
+dragZone.addEventListener('dragleave', () => {
+  dragZone.classList.remove('dragover');
+});
+dragZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dragZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.path) {
+    loadExploratoryVideo(file.path);
+  }
+});
+dragZone.addEventListener('click', async () => {
+  const file = await window.api.selectVideoFile();
+  if (file) {
+    loadExploratoryVideo(file);
+  }
+});
+
+function loadExploratoryVideo(filePath) {
+  expVideoPath = filePath;
+  const video = $('#exploratory-video');
+  
+  // Clean up previous states
+  video.pause();
+  video.playbackRate = 1.0;
+  $('#exp-video-speed').value = 1.0;
+  $('#exp-speed-val').textContent = '1.0×';
+  $('#btn-exp-play').textContent = '▶';
+  currentAnnotations = [];
+  currentRect = null;
+  renderAnnotationsList();
+  redrawCanvas();
+  
+  // Load new video
+  const resolvedPath = filePath.startsWith('file://') ? filePath : 'file:///' + filePath.replace(/\\/g, '/');
+  video.src = resolvedPath;
+  video.load();
+  
+  // UI Display
+  const filename = filePath.split(/[\\/]/).pop();
+  $('#lbl-video-name').textContent = filename;
+  $('#loaded-video-info').classList.remove('hidden');
+  
+  video.onloadedmetadata = () => {
+    $('#lbl-video-duration').textContent = `${translations[currentLang]['status-audio-label']} ${fmtTime(video.duration)}`;
+    
+    // Set slider bounds
+    const maxDur = video.duration;
+    $('#exp-trim-min').max = maxDur;
+    $('#exp-trim-min').value = 0;
+    
+    $('#exp-trim-max').max = maxDur;
+    $('#exp-trim-max').value = maxDur;
+    
+    $('#exp-video-seek').max = maxDur;
+    $('#exp-video-seek').value = 0;
+    
+    $('#inp-trim-start').value = '00:00';
+    $('#inp-trim-end').value = fmtTime(maxDur);
+    
+    // Enable buttons
+    $('#btn-exp-trim-segment').removeAttribute('disabled');
+    $('#btn-exp-save-frame').removeAttribute('disabled');
+    
+    updateTrimTimeline();
+    setTimeout(alignCanvasWithVideo, 200);
+  };
+}
+
+// Sliders and Seek Logic
+function updateTrimTimeline() {
+  const video = $('#exploratory-video');
+  const dur = video.duration || 100;
+  
+  const minVal = parseFloat($('#exp-trim-min').value);
+  const maxVal = parseFloat($('#exp-trim-max').value);
+  
+  $('#inp-trim-start').value = fmtTime(minVal);
+  $('#inp-trim-end').value = fmtTime(maxVal);
+  
+  const highlight = $('#trim-highlight-bar');
+  const leftPct = (minVal / dur) * 100;
+  const widthPct = ((maxVal - minVal) / dur) * 100;
+  highlight.style.left = leftPct + '%';
+  highlight.style.width = widthPct + '%';
+}
+
+$('#exp-trim-min').addEventListener('input', (e) => {
+  let val = parseFloat(e.target.value);
+  const maxVal = parseFloat($('#exp-trim-max').value);
+  if (val >= maxVal) {
+    val = maxVal - 0.1;
+    e.target.value = val;
+  }
+  updateTrimTimeline();
+});
+
+$('#exp-trim-max').addEventListener('input', (e) => {
+  let val = parseFloat(e.target.value);
+  const minVal = parseFloat($('#exp-trim-min').value);
+  if (val <= minVal) {
+    val = minVal + 0.1;
+    e.target.value = val;
+  }
+  updateTrimTimeline();
+});
+
+$('#exp-video-seek').addEventListener('input', (e) => {
+  const video = $('#exploratory-video');
+  video.currentTime = parseFloat(e.target.value);
+  $('#exp-current-time').textContent = fmtTime(video.currentTime);
+});
+
+// Play/Pause
+$('#btn-exp-play').addEventListener('click', () => {
+  const video = $('#exploratory-video');
+  if (video.paused) {
+    video.play();
+    $('#btn-exp-play').textContent = '⏸';
+  } else {
+    video.pause();
+    $('#btn-exp-play').textContent = '▶';
+  }
+});
+
+// Playback Speed Slider Control
+$('#exp-video-speed').addEventListener('input', (e) => {
+  const video = $('#exploratory-video');
+  const speed = parseFloat(e.target.value);
+  video.playbackRate = speed;
+  const speedText = speed % 1 === 0 ? speed.toFixed(1) : speed.toFixed(2);
+  $('#exp-speed-val').textContent = speedText + '×';
+});
+
+// Set trim handles at current seek time
+$('#btn-set-trim-start').addEventListener('click', () => {
+  const video = $('#exploratory-video');
+  const maxVal = parseFloat($('#exp-trim-max').value);
+  let val = video.currentTime;
+  if (val >= maxVal) {
+    val = maxVal - 0.1;
+  }
+  $('#exp-trim-min').value = val;
+  updateTrimTimeline();
+});
+
+$('#btn-set-trim-end').addEventListener('click', () => {
+  const video = $('#exploratory-video');
+  const minVal = parseFloat($('#exp-trim-min').value);
+  let val = video.currentTime;
+  if (val <= minVal) {
+    val = minVal + 0.1;
+  }
+  $('#exp-trim-max').value = val;
+  updateTrimTimeline();
+});
+
+// Video playback checks
+const videoEl = $('#exploratory-video');
+videoEl.addEventListener('timeupdate', () => {
+  if (!videoEl.paused) {
+    $('#exp-video-seek').value = videoEl.currentTime;
+    $('#exp-current-time').textContent = fmtTime(videoEl.currentTime);
+    
+    // Auto-loop/stop if exceeded max trim
+    const maxVal = parseFloat($('#exp-trim-max').value);
+    if (videoEl.currentTime >= maxVal) {
+      videoEl.pause();
+      $('#btn-exp-play').textContent = '▶';
+      videoEl.currentTime = parseFloat($('#exp-trim-min').value);
+      $('#exp-video-seek').value = videoEl.currentTime;
+    }
+  }
+});
+
+// Resize window canvas sync
+window.addEventListener('resize', () => {
+  if (phases.exploratory.classList.contains('hidden') === false) {
+    alignCanvasWithVideo();
+  }
+});
+
+// Canvas drawing
+const canvas = document.getElementById('annotation-canvas');
+const ctx = canvas.getContext('2d');
+
+let isDrawing = false;
+let startX = 0, startY = 0;
+let currentRect = null;
+
+canvas.addEventListener('mousedown', (e) => {
+  if (!expVideoPath) return;
+  videoEl.pause();
+  $('#btn-exp-play').textContent = '▶';
+  
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  startX = (e.clientX - rect.left) * scaleX;
+  startY = (e.clientY - rect.top) * scaleY;
+  isDrawing = true;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDrawing) return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  const currX = (e.clientX - rect.left) * scaleX;
+  const currY = (e.clientY - rect.top) * scaleY;
+  
+  const x = Math.min(startX, currX);
+  const y = Math.min(startY, currY);
+  const w = Math.abs(startX - currX);
+  const h = Math.abs(startY - currY);
+  
+  currentRect = { x, y, w, h };
+  
+  redrawCanvas();
+  // Draw current selection rect
+  ctx.strokeStyle = '#79c0ff';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(x, y, w, h);
+  ctx.setLineDash([]);
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (!isDrawing) return;
+  isDrawing = false;
+  if (currentRect && currentRect.w > 5 && currentRect.h > 5) {
+    $('#annotation-details-form').classList.remove('hidden');
+    $('#inp-annotation-label').value = '';
+    $('#inp-annotation-label').focus();
+  } else {
+    currentRect = null;
+    redrawCanvas();
+  }
+});
+
+$('#btn-save-annotation').addEventListener('click', () => {
+  const label = $('#inp-annotation-label').value.trim();
+  if (label && currentRect) {
+    currentAnnotations.push({
+      label,
+      x: Math.round(currentRect.x),
+      y: Math.round(currentRect.y),
+      w: Math.round(currentRect.w),
+      h: Math.round(currentRect.h)
+    });
+    currentRect = null;
+    $('#annotation-details-form').classList.add('hidden');
+    renderAnnotationsList();
+    redrawCanvas();
+  }
+});
+
+$('#btn-cancel-annotation').addEventListener('click', () => {
+  currentRect = null;
+  $('#annotation-details-form').classList.add('hidden');
+  redrawCanvas();
+});
+
+$('#btn-clear-annotations').addEventListener('click', () => {
+  currentAnnotations = [];
+  renderAnnotationsList();
+  redrawCanvas();
+});
+
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  currentAnnotations.forEach((ann) => {
+    ctx.strokeStyle = '#58a6ff';
+    ctx.lineWidth = 4;
+    ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+    ctx.strokeRect(ann.x, ann.y, ann.w, ann.h);
+    ctx.fillRect(ann.x, ann.y, ann.w, ann.h);
+    
+    // Draw text bubble
+    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    const textWidth = ctx.measureText(ann.label).width;
+    ctx.fillStyle = 'rgba(13, 17, 23, 0.85)';
+    ctx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText(ann.label, ann.x + 8, ann.y - 9);
+  });
+}
+
+function renderAnnotationsList() {
+  const container = $('#annotations-list-container');
+  container.innerHTML = '';
+  
+  if (currentAnnotations.length === 0) {
+    container.innerHTML = `<span id="lbl-no-annotations" style="font-size: 12px; color: #8b949e;" data-i18n="exp-no-annotations">${translations[currentLang]['exp-no-annotations']}</span>`;
+    return;
+  }
+  
+  currentAnnotations.forEach((ann, idx) => {
+    const item = document.createElement('div');
+    item.className = 'annotation-item';
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'ann-text';
+    textSpan.textContent = ann.label;
+    
+    const coordsSpan = document.createElement('span');
+    coordsSpan.className = 'ann-coords';
+    coordsSpan.textContent = `[${ann.x},${ann.y},${ann.w}x${ann.h}]`;
+    
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn-icon delete';
+    btnDel.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="display:block;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    btnDel.onclick = () => {
+      currentAnnotations.splice(idx, 1);
+      renderAnnotationsList();
+      redrawCanvas();
+    };
+    
+    item.appendChild(textSpan);
+    item.appendChild(coordsSpan);
+    item.appendChild(btnDel);
+    container.appendChild(item);
+  });
+}
+
+function alignCanvasWithVideo() {
+  const container = videoEl.parentElement;
+  const rect = container.getBoundingClientRect();
+  if (!videoEl.videoWidth || !videoEl.videoHeight) return;
+  const bounds = getVideoImageBounds(videoEl, rect.width, rect.height);
+  canvas.style.left = bounds.x + 'px';
+  canvas.style.top = bounds.y + 'px';
+  canvas.style.width = bounds.w + 'px';
+  canvas.style.height = bounds.h + 'px';
+  canvas.width = videoEl.videoWidth;
+  canvas.height = videoEl.videoHeight;
+  redrawCanvas();
+}
+
+function getVideoImageBounds(video, containerWidth, containerHeight) {
+  const videoRatio = video.videoWidth / video.videoHeight;
+  const containerRatio = containerWidth / containerHeight;
+  let w, h, x, y;
+  if (videoRatio > containerRatio) {
+    w = containerWidth;
+    h = containerWidth / videoRatio;
+    x = 0;
+    y = (containerHeight - h) / 2;
+  } else {
+    h = containerHeight;
+    w = containerHeight * videoRatio;
+    x = (containerWidth - w) / 2;
+    y = 0;
+  }
+  return { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) };
+}
+
+// Save modal action
+$('#btn-exp-trim-segment').addEventListener('click', () => {
+  expSaveAction = 'trim';
+  openExploratorySaveModal();
+});
+
+$('#btn-exp-save-frame').addEventListener('click', () => {
+  expSaveAction = 'frame';
+  openExploratorySaveModal();
+});
+
+async function openExploratorySaveModal() {
+  const project = $('#exp-project-select').value;
+  const sprint = $('#exp-sprint-select').value;
+  
+  if (!project || !sprint) {
+    alert(currentLang === 'es' ? 'Por favor selecciona un Proyecto y Sprint antes de exportar.' : 'Please select a Project and Sprint before exporting.');
+    return;
+  }
+  
+  // Load Project, Sprint and HUs dropdowns
+  await populateSaveProjectsDropdown();
+  
+  // Setup display info
+  const infoEl = $('#exp-save-extra-info');
+  if (expSaveAction === 'trim') {
+    const minVal = parseFloat($('#exp-trim-min').value);
+    const maxVal = parseFloat($('#exp-trim-max').value);
+    const dur = maxVal - minVal;
+    infoEl.textContent = currentLang === 'es' 
+      ? `Operación: Recorte de Video | Segmento: ${fmtTime(minVal)} - ${fmtTime(maxVal)} (${dur.toFixed(1)} segundos)`
+      : `Operation: Video Trim | Segment: ${fmtTime(minVal)} - ${fmtTime(maxVal)} (${dur.toFixed(1)} seconds)`;
+  } else {
+    const curr = videoEl.currentTime;
+    infoEl.textContent = currentLang === 'es'
+      ? `Operación: Captura Anotada | Tiempo en video: ${fmtTime(curr)}`
+      : `Operation: Annotated Screenshot | Time in video: ${fmtTime(curr)}`;
+  }
+  
+  // Clear details
+  $('#exp-save-description').value = '';
+  $('#exp-new-hu-inline-container').classList.add('hidden');
+  $('#exp-new-hu-input').value = '';
+  
+  $('#modal-exploratory-save-overlay').classList.remove('hidden');
+}
+
+async function populateSaveProjectsDropdown() {
+  const select = $('#exp-save-project-select');
+  select.innerHTML = '';
+  const projects = await window.api.getProjects();
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  });
+  const currentProject = $('#exp-project-select').value;
+  if (currentProject && projects.includes(currentProject)) {
+    select.value = currentProject;
+  }
+  await updateSaveSprintsDropdown();
+}
+
+async function updateSaveSprintsDropdown() {
+  const project = $('#exp-save-project-select').value;
+  const select = $('#exp-save-sprint-select');
+  select.innerHTML = '';
+  if (!project) return;
+  const sprints = await window.api.getSprints(project);
+  sprints.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    select.appendChild(opt);
+  });
+  const currentSprint = $('#exp-sprint-select').value;
+  if (currentSprint && sprints.includes(currentSprint)) {
+    select.value = currentSprint;
+  } else if (sprints.length > 0) {
+    select.value = sprints[0];
+  }
+  await populateSaveHuDropdown();
+}
+
+async function populateSaveHuDropdown() {
+  const project = $('#exp-save-project-select').value;
+  const sprint = $('#exp-save-sprint-select').value;
+  const select = $('#exp-save-hu-select');
+  select.innerHTML = '';
+  
+  if (!project || !sprint) return;
+  const husList = await window.api.getHus({ project, sprint });
+  husList.forEach(hu => {
+    const opt = document.createElement('option');
+    opt.value = hu.name;
+    opt.textContent = `${hu.id}: ${hu.name}`;
+    select.appendChild(opt);
+  });
+  if (state.selectedHu && husList.some(hu => hu.id === state.selectedHu.id)) {
+    select.value = state.selectedHu.name;
+  }
+}
+
+// Save Modal Dropdowns Listeners
+$('#exp-save-project-select').addEventListener('change', async () => {
+  await updateSaveSprintsDropdown();
+});
+
+$('#exp-save-sprint-select').addEventListener('change', async () => {
+  await populateSaveHuDropdown();
+});
+
+// In-line HU creation in save modal
+$('#btn-exp-new-hu').addEventListener('click', () => {
+  $('#exp-new-hu-inline-container').classList.remove('hidden');
+  $('#exp-new-hu-input').focus();
+});
+
+$('#btn-exp-new-hu-cancel').addEventListener('click', () => {
+  $('#exp-new-hu-inline-container').classList.add('hidden');
+  $('#exp-new-hu-input').value = '';
+});
+
+$('#btn-exp-new-hu-save').addEventListener('click', async () => {
+  const project = $('#exp-save-project-select').value;
+  const sprint = $('#exp-save-sprint-select').value;
+  const newName = $('#exp-new-hu-input').value.trim();
+  
+  if (!newName) {
+    alert(currentLang === 'es' ? 'Por favor ingresa un nombre para la Historia de Usuario.' : 'Please enter a name for the User Story.');
+    return;
+  }
+  
+  let cleanName = newName;
+  if (!cleanName.toUpperCase().startsWith('HU') && !cleanName.toUpperCase().startsWith('CP')) {
+    cleanName = 'HU-' + cleanName;
+  }
+  
+  const res = await window.api.createHu({ project, sprint, huName: cleanName });
+  if (res.success) {
+    await populateSaveHuDropdown();
+    // Pre-select new HU
+    $('#exp-save-hu-select').value = cleanName;
+    $('#exp-new-hu-inline-container').classList.add('hidden');
+    $('#exp-new-hu-input').value = '';
+  } else {
+    alert('Error: ' + res.error);
+  }
+});
+
+$('#btn-exp-save-modal-cancel').addEventListener('click', () => {
+  $('#modal-exploratory-save-overlay').classList.add('hidden');
+});
+
+$('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
+  const project = $('#exp-save-project-select').value;
+  const sprint = $('#exp-save-sprint-select').value;
+  const huName = $('#exp-save-hu-select').value;
+  const findingType = $('#exp-save-type-select').value;
+  const description = $('#exp-save-description').value.trim();
+  
+  if (!project || !sprint || !huName) {
+    alert(currentLang === 'es' ? 'Por favor selecciona Proyecto, Sprint e Historia de Usuario.' : 'Please select Project, Sprint and User Story.');
+    return;
+  }
+  
+  $('#modal-exploratory-save-overlay').classList.add('hidden');
+  
+  // Show loading
+  const doneStatus = $('#done-status');
+  doneStatus.innerHTML = `<p><span class="spinner" style="display:inline-block; width:20px; height:20px; border:3px solid var(--accent-color); border-top-color:transparent; border-radius:50%; animation:spin 1s infinite linear; margin-right:10px;"></span> ${currentLang === 'es' ? 'Procesando evidencias de pruebas exploratorias...' : 'Processing exploratory testing evidence...'}</p>`;
+  
+  // inject spin animation style if not defined
+  if (!document.getElementById('spin-style')) {
+    const style = document.createElement('style');
+    style.id = 'spin-style';
+    style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+  }
+  
+  showPhase('done');
+  
+  const ts = Date.now();
+  const filePrefix = `exploratory_${findingType}_${ts}`;
+  
+  try {
+    if (expSaveAction === 'trim') {
+      const minVal = parseFloat($('#exp-trim-min').value);
+      const maxVal = parseFloat($('#exp-trim-max').value);
+      const duration = maxVal - minVal;
+      const fileName = `${filePrefix}.mp4`;
+      
+      // Call trim-video IPC
+      const trimRes = await window.api.trimVideo({
+        inputPath: expVideoPath,
+        project,
+        sprint,
+        huName,
+        fileName,
+        startSec: minVal,
+        duration: duration
+      });
+      
+      if (!trimRes.success) throw new Error(trimRes.error);
+      
+      // Save screenshot & JSON metadata linked to HU
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = videoEl.videoWidth;
+      tempCanvas.height = videoEl.videoHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(videoEl, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw annotations on screenshot
+      tempCtx.strokeStyle = '#58a6ff';
+      tempCtx.lineWidth = 4;
+      tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+      tempCtx.font = 'bold 16px sans-serif';
+      currentAnnotations.forEach((ann) => {
+        tempCtx.strokeRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
+        const textWidth = tempCtx.measureText(ann.label).width;
+        tempCtx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
+        tempCtx.fillStyle = '#58a6ff';
+        tempCtx.fillText(ann.label, ann.x + 8, ann.y - 8);
+        tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+      });
+      
+      const base64Image = tempCanvas.toDataURL('image/png');
+      
+      const metaRes = await window.api.saveAnnotatedFrame({
+        project,
+        sprint,
+        huName,
+        base64Image,
+        annotations: currentAnnotations,
+        findingType,
+        description: `[Segment: ${fmtTime(minVal)} - ${fmtTime(maxVal)}] ${description}`
+      });
+      
+      if (!metaRes.success) throw new Error(metaRes.error);
+      
+      doneStatus.innerHTML = `
+        <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+        <h3>${currentLang === 'es' ? 'Recorte Guardado Correctamente' : 'Trim Saved Successfully'}</h3>
+        <p>Video segment: <strong>${fileName}</strong></p>
+        <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
+        <p>Screenshot: <strong>${metaRes.pngName}</strong></p>
+      `;
+    } else {
+      // frame only action
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = videoEl.videoWidth;
+      tempCanvas.height = videoEl.videoHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(videoEl, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Draw annotations on screenshot
+      tempCtx.strokeStyle = '#58a6ff';
+      tempCtx.lineWidth = 4;
+      tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+      tempCtx.font = 'bold 16px sans-serif';
+      currentAnnotations.forEach((ann) => {
+        tempCtx.strokeRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillRect(ann.x, ann.y, ann.w, ann.h);
+        tempCtx.fillStyle = 'rgba(13, 17, 23, 0.85)';
+        const textWidth = tempCtx.measureText(ann.label).width;
+        tempCtx.fillRect(ann.x, ann.y - 25, textWidth + 16, 22);
+        tempCtx.fillStyle = '#58a6ff';
+        tempCtx.fillText(ann.label, ann.x + 8, ann.y - 8);
+        tempCtx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+      });
+      
+      const base64Image = tempCanvas.toDataURL('image/png');
+      
+      const metaRes = await window.api.saveAnnotatedFrame({
+        project,
+        sprint,
+        huName,
+        base64Image,
+        annotations: currentAnnotations,
+        findingType,
+        description: `[Timestamp: ${fmtTime(videoEl.currentTime)}] ${description}`
+      });
+      
+      if (!metaRes.success) throw new Error(metaRes.error);
+      
+      doneStatus.innerHTML = `
+        <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+        <h3>${currentLang === 'es' ? 'Captura Guardada Correctamente' : 'Screenshot Saved Successfully'}</h3>
+        <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
+        <p>Screenshot: <strong>${metaRes.pngName}</strong></p>
+      `;
+    }
+  } catch (err) {
+    console.error('Error saving exploratory evidence:', err);
+    doneStatus.innerHTML = `
+      <div style="font-size: 40px; color: #f85149; margin-bottom: 20px;">⚠️</div>
+      <h3>${currentLang === 'es' ? 'Error al procesar' : 'Error in processing'}</h3>
+      <p style="color: #f85149">${err.message}</p>
+    `;
+  }
+});
 
 renderProjects();
 showPhase('dashboard');

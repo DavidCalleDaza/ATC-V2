@@ -23,4 +23,7 @@ contextBridge.exposeInMainWorld('api', {
   startRecording: (data) => ipcRenderer.invoke('start-recording', data),
   updateOverlayText: (text) => ipcRenderer.invoke('update-overlay-text', text),
   onOverlayControl: (cb) => ipcRenderer.on('overlay-control', (_e, action) => cb(action)),
+  selectVideoFile: () => ipcRenderer.invoke('select-video-file'),
+  trimVideo: (data) => ipcRenderer.invoke('trim-video', data),
+  saveAnnotatedFrame: (data) => ipcRenderer.invoke('save-annotated-frame', data),
 });

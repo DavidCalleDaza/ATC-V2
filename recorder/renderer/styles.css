@@ -98,3 +98,104 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
 .dash-item { display: flex; justify-content: space-between; align-items: center; }
 .recording-dot.paused { background-color: #8b949e !important; animation: none !important; }
 #right-drawer.open { width: 320px !important; min-width: 320px !important; padding: 20px !important; border-left: 1px solid var(--border-color) !important; }
+
+/* ── Exploratory Testing CSS ── */
+#video-drag-zone.dragover {
+  border-color: var(--accent-color) !important;
+  background: rgba(88, 166, 255, 0.1) !important;
+  color: #fff;
+}
+
+#annotation-canvas {
+  pointer-events: auto;
+}
+
+/* Custom dual timeline sliders styling */
+#exp-video-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  margin-top: -4px;
+}
+#exp-video-seek::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 3px;
+}
+
+#exp-trim-min::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* triangle pointing up */
+  background: var(--accent-color);
+  cursor: ew-resize;
+  border: none;
+  margin-top: 4px;
+}
+
+#exp-trim-max::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* triangle pointing up */
+  background: var(--accent-color);
+  cursor: ew-resize;
+  border: none;
+  margin-top: 4px;
+}
+
+#exp-video-speed::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+  border: 1px solid var(--bg-panel);
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+.annotation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 12px;
+  transition: 0.15s;
+}
+.annotation-item:hover {
+  border-color: var(--accent-color);
+}
+.annotation-item .ann-text {
+  flex: 1;
+  color: #fff;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.annotation-item .ann-coords {
+  color: #8b949e;
+  font-size: 10px;
+  margin-left: 8px;
+  margin-right: 8px;
+  font-family: monospace;
+}
+

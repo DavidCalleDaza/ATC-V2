@@ -291,6 +291,86 @@ ipcMain.handle('load-audio-guide', async (_event, { project, sprint, huName, huI
   return { success: true, mdContent, audioBase64, durations };
 });
 
+// ── Exploratory Testing IPC Handlers ──────────────────────────────────────────
+
+ipcMain.handle('select-video-file', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'Video Files', extensions: ['mp4', 'webm', 'mkv', 'avi', 'mov'] }
+    ]
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('trim-video', async (_event, { inputPath, project, sprint, huName, fileName, startSec, duration }) => {
+  return new Promise((resolve) => {
+    try {
+      const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+      if (!fs.existsSync(huDir)) {
+        fs.mkdirSync(huDir, { recursive: true });
+      }
+      const outputPath = path.join(huDir, fileName);
+      const args = [
+        '-y',
+        '-ss', parseFloat(startSec).toString(),
+        '-i', inputPath,
+        '-t', parseFloat(duration).toString(),
+        '-c', 'copy',
+        outputPath
+      ];
+      console.log('[Trim] Running ffmpeg', args.join(' '));
+      const proc = spawn('ffmpeg', args);
+      let stderr = '';
+      proc.stderr.on('data', d => stderr += d.toString());
+      proc.on('close', code => {
+        if (code === 0) {
+          resolve({ success: true, outputPath });
+        } else {
+          console.error('[Trim] ffmpeg error:', stderr);
+          resolve({ success: false, error: stderr });
+        }
+      });
+      proc.on('error', err => {
+        console.error('[Trim] spawn error:', err);
+        resolve({ success: false, error: err.message });
+      });
+    } catch (e) {
+      console.error('[Trim] exception:', e);
+      resolve({ success: false, error: e.message });
+    }
+  });
+});
+
+ipcMain.handle('save-annotated-frame', async (_event, { project, sprint, huName, base64Image, annotations, findingType, description }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    if (!fs.existsSync(huDir)) {
+      fs.mkdirSync(huDir, { recursive: true });
+    }
+    const ts = Date.now();
+    const fileName = `finding_${findingType}_${ts}`;
+    const pngPath = path.join(huDir, `${fileName}.png`);
+    const jsonPath = path.join(huDir, `${fileName}.json`);
+
+    const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+    fs.writeFileSync(pngPath, imageBuffer);
+
+    const metadata = {
+      findingType,
+      description,
+      annotations,
+      generated_at: new Date().toISOString()
+    };
+    fs.writeFileSync(jsonPath, JSON.stringify(metadata, null, 2));
+
+    return { success: true, pngName: `${fileName}.png`, jsonName: `${fileName}.json` };
+  } catch (err) {
+    console.error('[Save Annotated Frame] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
 // ─── Desktop Capturer ──────────────────────────────────────────────────────────
 ipcMain.handle('get-screen-sources', async () => {
   const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1920, height: 1080 } });
