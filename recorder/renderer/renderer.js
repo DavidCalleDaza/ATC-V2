@@ -1,0 +1,1335 @@
+// ─── Translations ────────────────────────────────────────────────────────────
+const translations = {
+  en: {
+    "app-title": "Automatic test case",
+    "app-subtitle": "Synchronized Evidence Recorder",
+    "lang-label": "Language:",
+    "phase0-title": "0. Projects Dashboard",
+    "col-projects": "Projects",
+    "btn-new": "+ New",
+    "col-sprints": "Sprints",
+    "col-hus": "User Stories",
+    "btn-new-hu": "+ New HU",
+    "status-select-project": "Select a project...",
+    "status-select-sprint": "Select a sprint...",
+    "status-no-hus": "No User Stories in this sprint.",
+    "status-excel-label": "Design Excel:",
+    "status-word-label": "Word Template:",
+    "status-audio-label": "Audio Guide:",
+    "status-found": "✔ File OK",
+    "status-missing": "Missing",
+    "status-generated": "✔ Generated",
+    "btn-upload": "Attach / Upload Files",
+    "btn-start-flow": "➜ Go to Record Evidences",
+    "phase1-title": "1. Prepare Audio Guide",
+    "audio-missing-title": "Missing Audio Guide",
+    "audio-missing-text": "The audio and script for this HU have not been generated.",
+    "audio-ready-title": "Audio Guide Ready",
+    "audio-ready-text": "Script loaded successfully. You can proceed to select the recording region.",
+    "btn-back": "Back",
+    "btn-generate-audio": "Generate Audio with Python",
+    "btn-regenerate-audio": "Regenerate Audio (Force)",
+    "btn-go-region": "Next: Select Region",
+    "phase2-title": "2. Select Region to Record",
+    "phase2-desc": "Select the screen you wish to record and adjust the frame over the exact region that will be captured in the video.",
+    "screen-label": "Screen/Window:",
+    "screen-loading": "Loading sources...",
+    "btn-start-recording": "Start Recording",
+    "phase3-title": "3. Recording ",
+    "btn-play-all": "▶ Play All Continuous",
+    "btn-pause-audio": "Pause Audio",
+    "btn-resume-audio": "Resume Audio",
+    "btn-stop-recording": "Stop Recording",
+    "btn-discard-recording": "Discard",
+    "script-ref-title": "Reference Script",
+    "script-ref-wait": "Waiting... Select a block from the list to narrate.",
+    "voice-speed": "Voice Speed:",
+    "phase4-title": "4. Recording Finished",
+    "btn-back-home": "Back to Home",
+    "saving-video": "Processing video (Saving traceability and finishing recording...)",
+    "save-success": "Video Recorded Successfully",
+    "save-error": "Error in processing",
+    "confirm-delete-project": "Are you sure you want to delete project \"{name}\"?",
+    "confirm-delete-sprint": "Are you sure you want to delete sprint \"{name}\"?",
+    "confirm-delete-hu": "Are you sure you want to delete User Story \"{name}\"?",
+    "modal-rename-project": "Rename Project",
+    "modal-rename-sprint": "Rename Sprint",
+    "modal-rename-hu": "Rename User Story",
+    "modal-new-project": "New Project",
+    "modal-new-sprint": "New Sprint",
+    "modal-new-hu": "New User Story",
+    "input-placeholder-name": "Enter name...",
+    "window-title": "Automatic test case — Evidence Recorder",
+  },
+  es: {
+    "app-title": "Automatización de casos de prueba",
+    "app-subtitle": "Grabador Sincronizado de Evidencias",
+    "lang-label": "Idioma:",
+    "phase0-title": "0. Dashboard de Proyectos",
+    "col-projects": "Proyectos",
+    "btn-new": "+ Nuevo",
+    "col-sprints": "Sprints",
+    "col-hus": "Historias de Usuario",
+    "btn-new-hu": "+ Nueva HU",
+    "status-select-project": "Selecciona un proyecto...",
+    "status-select-sprint": "Selecciona un sprint...",
+    "status-no-hus": "No hay HUs en este sprint.",
+    "status-excel-label": "Excel de Diseño:",
+    "status-word-label": "Word Plantilla:",
+    "status-audio-label": "Audio-Guía:",
+    "status-found": "✔ Archivo OK",
+    "status-missing": "Falta",
+    "status-generated": "✔ Generado",
+    "btn-upload": "Adjuntar / Subir Archivos",
+    "btn-start-flow": "➜ Ir a Grabar Evidencias",
+    "phase1-title": "1. Preparar Audio-Guía",
+    "audio-missing-title": "Falta Audio-Guía",
+    "audio-missing-text": "El audio y guión para esta HU no han sido generados.",
+    "audio-ready-title": "Audio-Guía Lista",
+    "audio-ready-text": "Guión cargado correctamente. Puedes avanzar a seleccionar la región de grabación.",
+    "btn-back": "Volver",
+    "btn-generate-audio": "Generar Audio con Python",
+    "btn-regenerate-audio": "Regenerar Audio (Forzar)",
+    "btn-go-region": "Siguiente: Seleccionar Región",
+    "phase2-title": "2. Seleccionar Región a Grabar",
+    "phase2-desc": "Selecciona la pantalla que deseas grabar y ajusta el recuadro sobre la región exacta que será capturada en el video.",
+    "screen-label": "Pantalla/Ventana:",
+    "screen-loading": "Cargando fuentes...",
+    "btn-start-recording": "Iniciar Grabación",
+    "phase3-title": "3. Grabando ",
+    "btn-play-all": "▶ Reproducir Todo Continuo",
+    "btn-pause-audio": "Pausar Audio",
+    "btn-resume-audio": "Reanudar Audio",
+    "btn-stop-recording": "Detener Grabación",
+    "btn-discard-recording": "Descartar",
+    "script-ref-title": "Guión de Referencia",
+    "script-ref-wait": "Esperando... Selecciona un bloque de la lista para narrarlo.",
+    "voice-speed": "Velocidad de Voz:",
+    "phase4-title": "4. Grabación Finalizada",
+    "btn-back-home": "Volver al Inicio",
+    "saving-video": "Procesando video (Guardando trazabilidad y finalizando grabación...)",
+    "save-success": "Video Grabado Correctamente",
+    "save-error": "Error en el procesamiento",
+    "confirm-delete-project": "¿Estás seguro de que deseas eliminar el proyecto \"{name}\"?",
+    "confirm-delete-sprint": "¿Estás seguro de que deseas eliminar el sprint \"{name}\"?",
+    "confirm-delete-hu": "¿Estás seguro de que deseas eliminar la Historia de Usuario \"{name}\"?",
+    "modal-rename-project": "Renombrar Proyecto",
+    "modal-rename-sprint": "Renombrar Sprint",
+    "modal-rename-hu": "Renombrar Historia de Usuario",
+    "modal-new-project": "Nuevo Proyecto",
+    "modal-new-sprint": "Nuevo Sprint",
+    "modal-new-hu": "Nueva Historia (HU)",
+    "input-placeholder-name": "Escribe aquí...",
+    "window-title": "Automatic test case — Grabador de Evidencias",
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'en';
+
+function applyTranslations() {
+  const t = translations[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key]) {
+      const spanIcon = el.querySelector('span');
+      if (spanIcon) {
+        el.innerHTML = '';
+        el.appendChild(spanIcon);
+        const textNode = document.createTextNode(' ' + t[key]);
+        el.appendChild(textNode);
+      } else {
+        el.textContent = t[key];
+      }
+    }
+  });
+
+  const mInput = document.getElementById('modal-input');
+  if (mInput) {
+    mInput.placeholder = t['input-placeholder-name'];
+  }
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const state = {
+  project: null,
+  sprint: null,
+  hus: [],
+  selectedHu: null,
+  drawerType: null,
+  drawerItem: null,
+  mdContent: null,
+  audioBase64: null,
+  screenSources: [],
+  selectedSourceId: null,
+  selectedDisplayId: null,
+  
+  crop: { x: 0, y: 0, w: 0, h: 0 },
+  
+  isRecording: false,
+  recordingStartTime: 0,
+  timerInterval: null,
+  elapsedTimeBeforePause: 0,
+  cpTimestamps: [],
+  
+  audioContext: null,
+  audioBuffer: null,
+  audioSource: null,
+  audioDestination: null,
+  playbackSpeed: 0.9,
+  
+  mediaStream: null,
+  videoTrack: null,
+  mediaRecorder: null,
+  recordedChunks: [],
+};
+
+// ─── DOM refs ────────────────────────────────────────────────────────────────
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const phases = {
+  dashboard: $('#phase-dashboard-layout'),
+  review: $('#phase-review'),
+  region: $('#phase-region'),
+  recording: $('#phase-recording'),
+  done: $('#phase-done'),
+};
+
+function showPhase(name) {
+  Object.values(phases).forEach(p => p.classList.add('hidden'));
+  phases[name].classList.remove('hidden');
+  if (name === 'dashboard') {
+    $('#sidebar-hu-details').classList.add('hidden');
+  }
+}
+
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ─── Phase 0: Dashboard (Proyectos, Sprints, HUs) ────────────────────────────
+
+async function renderProjects() {
+  const projects = await window.api.getProjects();
+  const savedOrder = JSON.parse(localStorage.getItem('projectsOrder') || '[]');
+  if (savedOrder.length > 0) {
+    projects.sort((a, b) => {
+      let idxA = savedOrder.indexOf(a);
+      let idxB = savedOrder.indexOf(b);
+      if (idxA === -1) idxA = 999;
+      if (idxB === -1) idxB = 999;
+      return idxA - idxB;
+    });
+  }
+
+  const list = $('#dash-projects-list');
+  list.innerHTML = '';
+  
+  if (projects.length === 0) {
+    list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${translations[currentLang]['status-select-project']}</span>`;
+  }
+  
+  projects.forEach(p => {
+    const el = document.createElement('div');
+    el.className = `dash-item ${state.project === p ? 'active' : ''}`;
+    el.dataset.name = p;
+    el.setAttribute('draggable', 'true');
+    
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = p;
+    el.appendChild(labelSpan);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'item-actions';
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '5px';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn-icon edit';
+    btnEdit.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>';
+    btnEdit.title = translations[currentLang]['modal-rename-project'];
+    btnEdit.onclick = (e) => {
+      e.stopPropagation();
+      openModal(translations[currentLang]['modal-rename-project'], p, async (val) => {
+        const res = await window.api.renameProject({ oldName: p, newName: val });
+        if (res.success) {
+          if (state.project === p) state.project = val;
+          renderProjects();
+        } else {
+          alert('Error: ' + res.error);
+        }
+      });
+    };
+
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-icon delete';
+    btnDelete.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+    btnDelete.title = 'Delete';
+    btnDelete.onclick = (e) => {
+      e.stopPropagation();
+      const confText = translations[currentLang]['confirm-delete-project'].replace('{name}', p);
+      openConfirmModal(translations[currentLang]['col-projects'], confText, () => {
+        window.api.deleteProject(p).then((res) => {
+          if (res.success) {
+            if (state.project === p) {
+              state.project = null;
+              state.sprint = null;
+              state.selectedHu = null;
+            }
+            renderProjects();
+            renderSprints();
+            renderHus();
+          } else {
+            alert('Error: ' + res.error);
+          }
+        });
+      });
+    };
+
+    const btnView = document.createElement('button');
+    btnView.className = 'btn-icon view';
+    
+    const isDrawerOpen = $('#right-drawer').classList.contains('open');
+    const isProjectActive = isDrawerOpen && state.drawerType === 'project' && state.drawerItem === p;
+    if (isProjectActive) {
+      btnView.classList.add('active');
+      btnView.style.color = 'var(--accent-color)';
+    }
+    
+    btnView.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    btnView.title = 'View Details';
+    btnView.onclick = (e) => {
+      e.stopPropagation();
+      const currentlyOpen = $('#right-drawer').classList.contains('open');
+      const isSameProject = state.drawerType === 'project' && state.drawerItem === p;
+      
+      if (currentlyOpen && isSameProject) {
+        $('#right-drawer').classList.remove('open');
+        state.drawerType = null;
+        state.drawerItem = null;
+        renderProjects();
+      } else {
+        state.drawerType = 'project';
+        state.drawerItem = p;
+        showProjectDetails(p);
+        $('#right-drawer').classList.add('open');
+        renderProjects();
+        renderSprints();
+        renderHus();
+      }
+    };
+
+    el.appendChild(btnView);
+    actionsDiv.appendChild(btnEdit);
+    actionsDiv.appendChild(btnDelete);
+    el.appendChild(actionsDiv);
+
+    el.onclick = () => {
+      state.project = p; state.sprint = null; state.selectedHu = null;
+      renderProjects(); renderSprints(); renderHus();
+    };
+    list.appendChild(el);
+  });
+
+  $('#btn-add-sprint').classList.toggle('hidden', !state.project);
+  makeSortable('dash-projects-list', 'project', (newOrder) => {
+    localStorage.setItem('projectsOrder', JSON.stringify(newOrder));
+  });
+}
+
+async function renderSprints() {
+  const list = $('#dash-sprints-list');
+  if (!state.project) { 
+    list.innerHTML = translations[currentLang]['status-select-project']; 
+    $('#btn-upload-files').classList.add('hidden');
+    $('#btn-start-flow').classList.add('hidden');
+    return; 
+  }
+  
+  const sprints = await window.api.getSprints(state.project);
+  const savedOrder = JSON.parse(localStorage.getItem('sprintsOrder_' + state.project) || '[]');
+  if (savedOrder.length > 0) {
+    sprints.sort((a, b) => {
+      let idxA = savedOrder.indexOf(a);
+      let idxB = savedOrder.indexOf(b);
+      if (idxA === -1) idxA = 999;
+      if (idxB === -1) idxB = 999;
+      return idxA - idxB;
+    });
+  }
+  list.innerHTML = '';
+  
+  if (sprints.length === 0) {
+    list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${translations[currentLang]['status-select-sprint']}</span>`;
+  }
+  
+  sprints.forEach(s => {
+    const el = document.createElement('div');
+    el.className = `dash-item ${state.sprint === s ? 'active' : ''}`;
+    el.dataset.name = s;
+    el.setAttribute('draggable', 'true');
+    
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = s;
+    el.appendChild(labelSpan);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'item-actions';
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '5px';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn-icon edit';
+    btnEdit.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>';
+    btnEdit.title = translations[currentLang]['modal-rename-sprint'];
+    btnEdit.onclick = (e) => {
+      e.stopPropagation();
+      openModal(translations[currentLang]['modal-rename-sprint'], s, async (val) => {
+        const res = await window.api.renameSprint({ project: state.project, oldName: s, newName: val });
+        if (res.success) {
+          if (state.sprint === s) state.sprint = val;
+          renderSprints();
+        } else {
+          alert('Error: ' + res.error);
+        }
+      });
+    };
+
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-icon delete';
+    btnDelete.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+    btnDelete.title = 'Delete';
+    btnDelete.onclick = (e) => {
+      e.stopPropagation();
+      const confText = translations[currentLang]['confirm-delete-sprint'].replace('{name}', s);
+      openConfirmModal(translations[currentLang]['col-sprints'], confText, () => {
+        window.api.deleteSprint({ project: state.project, sprintName: s }).then((res) => {
+          if (res.success) {
+            if (state.sprint === s) {
+              state.sprint = null;
+              state.selectedHu = null;
+            }
+            renderSprints();
+            renderHus();
+          } else {
+            alert('Error: ' + res.error);
+          }
+        });
+      });
+    };
+
+    const btnView = document.createElement('button');
+    btnView.className = 'btn-icon view';
+    
+    const isDrawerOpen = $('#right-drawer').classList.contains('open');
+    const isSprintActive = isDrawerOpen && state.drawerType === 'sprint' && state.drawerItem === s;
+    if (isSprintActive) {
+      btnView.classList.add('active');
+      btnView.style.color = 'var(--accent-color)';
+    }
+    
+    btnView.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    btnView.title = 'View Details';
+    btnView.onclick = (e) => {
+      e.stopPropagation();
+      const currentlyOpen = $('#right-drawer').classList.contains('open');
+      const isSameSprint = state.drawerType === 'sprint' && state.drawerItem === s;
+      
+      if (currentlyOpen && isSameSprint) {
+        $('#right-drawer').classList.remove('open');
+        state.drawerType = null;
+        state.drawerItem = null;
+        renderSprints();
+      } else {
+        state.drawerType = 'sprint';
+        state.drawerItem = s;
+        showSprintDetails(state.project, s);
+        $('#right-drawer').classList.add('open');
+        renderProjects();
+        renderSprints();
+        renderHus();
+      }
+    };
+
+    el.appendChild(btnView);
+    actionsDiv.appendChild(btnEdit);
+    actionsDiv.appendChild(btnDelete);
+    el.appendChild(actionsDiv);
+
+    el.onclick = () => {
+      state.sprint = s; state.selectedHu = null;
+      renderSprints(); renderHus();
+    };
+    list.appendChild(el);
+  });
+
+  $('#btn-add-hu').classList.toggle('hidden', !state.sprint);
+  makeSortable('dash-sprints-list', 'sprint', (newOrder) => {
+    localStorage.setItem('sprintsOrder_' + state.project, JSON.stringify(newOrder));
+  });
+}
+
+async function renderHus() {
+  const list = $('#dash-hus-list');
+  if (!state.sprint) { 
+    list.innerHTML = translations[currentLang]['status-select-sprint']; 
+    $('#btn-upload-files').classList.add('hidden');
+    $('#btn-start-flow').classList.add('hidden');
+    return; 
+  }
+  
+  state.hus = await window.api.getHus({ project: state.project, sprint: state.sprint });
+  const savedOrder = JSON.parse(localStorage.getItem('husOrder_' + state.project + '_' + state.sprint) || '[]');
+  if (savedOrder.length > 0) {
+    state.hus.sort((a, b) => {
+      let idxA = savedOrder.indexOf(a.name);
+      let idxB = savedOrder.indexOf(b.name);
+      if (idxA === -1) idxA = 999;
+      if (idxB === -1) idxB = 999;
+      return idxA - idxB;
+    });
+  }
+  list.innerHTML = '';
+  
+  if (state.hus.length === 0) {
+    list.innerHTML = translations[currentLang]['status-no-hus'];
+    $('#btn-upload-files').classList.add('hidden');
+    $('#btn-start-flow').classList.add('hidden');
+  }
+  
+  state.hus.forEach(hu => {
+    const el = document.createElement('div');
+    el.className = `dash-item ${state.selectedHu?.id === hu.id ? 'active' : ''}`;
+    el.dataset.name = hu.name;
+    el.setAttribute('draggable', 'true');
+    
+    const infoSpan = document.createElement('span');
+    infoSpan.innerHTML = `<strong>${hu.id}</strong>`;
+    el.appendChild(infoSpan);
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = hu.hasAudio ? 'badge ok' : 'badge fail';
+    badgeSpan.textContent = hu.hasAudio ? 'Audio OK' : 'No Audio';
+    badgeSpan.style.marginLeft = '12px';
+    badgeSpan.style.marginRight = '10px';
+    el.appendChild(badgeSpan);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'item-actions';
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '5px';
+
+    const btnView = document.createElement('button');
+    btnView.className = 'btn-icon view';
+    
+    const isDrawerOpen = $('#right-drawer').classList.contains('open');
+    if (isDrawerOpen && state.selectedHu?.id === hu.id) {
+      btnView.classList.add('active');
+      btnView.style.color = 'var(--accent-color)';
+    }
+    
+    btnView.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    btnView.title = 'View Details';
+    btnView.onclick = (e) => {
+      e.stopPropagation();
+      const currentlyOpen = $('#right-drawer').classList.contains('open');
+      const isSameHu = state.selectedHu?.id === hu.id;
+      
+      if (currentlyOpen && isSameHu) {
+        $('#right-drawer').classList.remove('open');
+        state.selectedHu = null;
+        renderHus();
+      } else {
+        state.selectedHu = hu;
+        showHuDetails(hu);
+        $('#right-drawer').classList.add('open');
+        renderHus();
+      }
+    };
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn-icon edit';
+    btnEdit.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>';
+    btnEdit.title = translations[currentLang]['modal-rename-hu'];
+    btnEdit.onclick = (e) => {
+      e.stopPropagation();
+      openModal(translations[currentLang]['modal-rename-hu'], hu.name, async (val) => {
+        const res = await window.api.renameHu({ project: state.project, sprint: state.sprint, oldName: hu.name, newName: val });
+        if (res.success) {
+          if (state.selectedHu?.id === hu.id) {
+            state.selectedHu = null;
+          }
+          renderHus();
+        } else {
+          alert('Error: ' + res.error);
+        }
+      });
+    };
+
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-icon delete';
+    btnDelete.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+    btnDelete.title = 'Delete';
+    btnDelete.onclick = (e) => {
+      e.stopPropagation();
+      const confText = translations[currentLang]['confirm-delete-hu'].replace('{name}', hu.name);
+      openConfirmModal(translations[currentLang]['col-hus'], confText, () => {
+        window.api.deleteHu({ project: state.project, sprint: state.sprint, huName: hu.name }).then((res) => {
+          if (res.success) {
+            if (state.selectedHu?.id === hu.id) {
+              state.selectedHu = null;
+            }
+            renderHus();
+          } else {
+            alert('Error: ' + res.error);
+          }
+        });
+      });
+    };
+
+    el.appendChild(btnView);
+    actionsDiv.appendChild(btnEdit);
+    actionsDiv.appendChild(btnDelete);
+    el.appendChild(actionsDiv);
+
+    el.onclick = () => { state.selectedHu = hu; renderHus(); showHuDetails(hu); };
+    list.appendChild(el);
+    
+    if (state.selectedHu?.id === hu.id) {
+      state.selectedHu = hu;
+      showHuDetails(hu);
+    }
+  });
+
+  makeSortable('dash-hus-list', 'hu', (newOrder) => {
+    localStorage.setItem('husOrder_' + state.project + '_' + state.sprint, JSON.stringify(newOrder));
+  });
+}
+
+async function showProjectDetails(p) {
+  const sprints = await window.api.getSprints(p);
+  let totalHus = 0;
+  for (const s of sprints) {
+    const hus = await window.api.getHus({ project: p, sprint: s });
+    totalHus += hus.length;
+  }
+  
+  $('#right-drawer-title').textContent = translations[currentLang]['col-projects'];
+  $('#right-drawer-content').innerHTML = `
+    <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${p}</h4>
+    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total Sprints:</span>
+        <span class="badge ok">${sprints.length}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total User Stories:</span>
+        <span class="badge ok">${totalHus}</span>
+      </div>
+    </div>
+  `;
+}
+
+async function showSprintDetails(project, s) {
+  const hus = await window.api.getHus({ project, sprint: s });
+  
+  $('#right-drawer-title').textContent = translations[currentLang]['col-sprints'];
+  $('#right-drawer-content').innerHTML = `
+    <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${s}</h4>
+    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Project:</span>
+        <span style="font-size: 13px;">${project}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total User Stories:</span>
+        <span class="badge ok">${hus.length}</span>
+      </div>
+    </div>
+  `;
+}
+
+function showHuDetails(hu) {
+  const t = translations[currentLang];
+  $('#right-drawer-title').textContent = translations[currentLang]['col-hus'];
+  $('#right-drawer-content').innerHTML = `
+    <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${hu.id}: ${hu.name}</h4>
+    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-excel-label']}</span>
+        <span class="badge ${hu.hasExcel ? 'ok' : 'fail'}">${hu.hasExcel ? t['status-found'] : t['status-missing']}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-word-label']}</span>
+        <span class="badge ${hu.hasWord ? 'ok' : 'fail'}">${hu.hasWord ? t['status-found'] : t['status-missing']}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
+        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-audio-label']}</span>
+        <span class="badge ${hu.hasAudio ? 'ok' : 'fail'}">${hu.hasAudio ? t['status-generated'] : t['status-missing']}</span>
+      </div>
+    </div>
+  `;
+  
+  $('#btn-start-flow').disabled = !hu.hasExcel;
+  $('#btn-upload-files').classList.remove('hidden');
+  $('#btn-start-flow').classList.remove('hidden');
+}
+
+// Subida de archivos
+$('#btn-upload-files').onclick = async () => {
+  const files = await window.api.selectFiles();
+  if (files && files.length > 0) {
+    const res = await window.api.uploadFile({ 
+      project: state.project, sprint: state.sprint, huName: state.selectedHu.name, filePaths: files 
+    });
+    if (res.success) renderHus();
+    else alert('Error: ' + res.error);
+  }
+};
+
+// Drag and drop helper
+function makeSortable(containerId, type, onOrderChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let dragEl = null;
+  
+  container.ondragstart = (e) => {
+    const item = e.target.closest('.dash-item');
+    if (!item) return;
+    dragEl = item;
+    item.classList.add('dragging');
+  };
+  
+  container.ondragover = (e) => {
+    e.preventDefault();
+    const draggingItem = container.querySelector('.dragging');
+    if (!draggingItem) return;
+    const siblings = [...container.querySelectorAll('.dash-item:not(.dragging)')];
+    const nextSibling = siblings.find(sibling => {
+      const box = sibling.getBoundingClientRect();
+      return e.clientY <= box.top + box.height / 2;
+    });
+    container.insertBefore(draggingItem, nextSibling);
+  };
+  
+  container.ondragend = (e) => {
+    const item = e.target.closest('.dash-item');
+    if (item) item.classList.remove('dragging');
+    
+    const newOrder = [...container.querySelectorAll('.dash-item')].map(el => el.dataset.name);
+    if (onOrderChange) onOrderChange(newOrder);
+  };
+}
+
+// Modal de detalles HU cerrar
+$('#btn-hu-details-close').onclick = () => {
+  $('#right-drawer').classList.remove('open');
+  state.drawerType = null;
+  state.drawerItem = null;
+  renderProjects();
+  renderSprints();
+  renderHus();
+};
+
+// Modales genéricos
+const modal = $('#modal-overlay');
+const mInput = $('#modal-input');
+let modalCallback = null;
+
+function openModal(title, placeholder, cb) {
+  $('#modal-title').textContent = title;
+  mInput.classList.remove('hidden');
+  mInput.placeholder = placeholder;
+  mInput.value = '';
+  
+  const msgEl = $('#modal-message');
+  if (msgEl) msgEl.classList.add('hidden');
+  
+  modalCallback = cb;
+  modal.classList.remove('hidden');
+  mInput.focus();
+}
+
+function openConfirmModal(title, message, onConfirm) {
+  $('#modal-title').textContent = title;
+  mInput.classList.add('hidden');
+  
+  let msgEl = document.getElementById('modal-message');
+  if (!msgEl) {
+    msgEl = document.createElement('p');
+    msgEl.id = 'modal-message';
+    msgEl.style.marginBottom = '20px';
+    msgEl.style.color = 'var(--text-color)';
+    msgEl.style.lineHeight = '1.5';
+    mInput.parentNode.appendChild(msgEl);
+  }
+  msgEl.classList.remove('hidden');
+  msgEl.textContent = message;
+  
+  modalCallback = onConfirm;
+  modal.classList.remove('hidden');
+  $('#btn-modal-save').focus();
+}
+
+$('#btn-modal-cancel').onclick = () => modal.classList.add('hidden');
+$('#btn-modal-save').onclick = async () => {
+  const isConfirm = mInput.classList.contains('hidden');
+  if (!isConfirm && !mInput.value.trim()) return;
+  modal.classList.add('hidden');
+  if (modalCallback) {
+    if (isConfirm) {
+      await modalCallback();
+    } else {
+      await modalCallback(mInput.value.trim());
+    }
+  }
+};
+
+$('#btn-add-project').onclick = () => openModal(translations[currentLang]['modal-new-project'], 'Ej: QA_Automation', async (val) => {
+  await window.api.createProject(val);
+  renderProjects();
+});
+
+$('#btn-add-sprint').onclick = () => openModal(translations[currentLang]['modal-new-sprint'], 'Ej: sprint-03', async (val) => {
+  await window.api.createSprint({ project: state.project, sprintName: val });
+  renderSprints();
+});
+
+$('#btn-add-hu').onclick = () => openModal(translations[currentLang]['modal-new-hu'], 'Ej: HU-123_Login', async (val) => {
+  await window.api.createHu({ project: state.project, sprint: state.sprint, huName: val });
+  renderHus();
+});
+
+$('#btn-start-flow').onclick = () => loadHuReview(state.selectedHu);
+
+// ─── Phase 2: Review ─────────────────────────────────────────────────────────
+
+async function loadHuReview(hu) {
+  const t = translations[currentLang];
+  state.selectedHu = hu;
+  
+  // Close details drawer if open
+  $('#right-drawer').classList.remove('open');
+  
+  // Show and update the sidebar HU details sub section
+  const sidebarHuDetails = $('#sidebar-hu-details');
+  sidebarHuDetails.classList.remove('hidden');
+  
+  $('#sidebar-hu-title').textContent = `${hu.id}: ${hu.name}`;
+  $('#sidebar-status-excel').className = `badge ${hu.hasExcel ? 'ok' : 'fail'}`;
+  $('#sidebar-status-excel').textContent = hu.hasExcel ? t['status-found'] : t['status-missing'];
+  
+  $('#sidebar-status-word').className = `badge ${hu.hasWord ? 'ok' : 'fail'}`;
+  $('#sidebar-status-word').textContent = hu.hasWord ? t['status-found'] : t['status-missing'];
+  
+  $('#sidebar-status-audio').className = `badge ${hu.hasAudio ? 'ok' : 'fail'}`;
+  $('#sidebar-status-audio').textContent = hu.hasAudio ? t['status-generated'] : t['status-missing'];
+  
+  const pnl = $('#audio-status-panel');
+  const preview = $('#cp-script-preview');
+  
+  if (!hu.hasAudio) {
+    pnl.className = 'status-panel warn';
+    pnl.innerHTML = `<h3>${t['audio-missing-title']}</h3><p>${t['audio-missing-text']}</p>`;
+    preview.innerHTML = '';
+    
+    $('#btn-generate-audio').classList.remove('hidden');
+    $('#btn-generate-audio').textContent = t['btn-generate-audio'];
+    $('#btn-go-region').classList.add('hidden');
+  } else {
+    const res = await window.api.loadAudioGuide({ project: state.project, sprint: state.sprint, huName: hu.name, huId: hu.id });
+    if (res.success) {
+      state.mdContent = res.mdContent;
+      state.audioBase64 = res.audioBase64;
+      state.durations = res.durations || [];
+
+      const blocks = state.mdContent.split(/^(?=### Paso)/m);
+      state.segments = [];
+      let elapsed = 0;
+      if (state.durations.length > 0) {
+        state.segments.push({ title: currentLang === 'es' ? "Introducción" : "Introduction", start: elapsed, duration: state.durations[0], text: blocks[0] });
+        elapsed += state.durations[0];
+        for(let i=1; i<blocks.length; i++) {
+          const d = state.durations[i] || 0;
+          state.segments.push({ title: blocks[i].split('\n')[0].replace('###', '').trim(), start: elapsed, duration: d, text: blocks[i] });
+          elapsed += d;
+        }
+      } else {
+        state.segments.push({ title: currentLang === 'es' ? "Guía Completa" : "Full Guide", start: 0, duration: 9999, text: state.mdContent });
+      }
+      
+      pnl.className = 'status-panel ok';
+      pnl.innerHTML = `<h3>${t['audio-ready-title']}</h3><p>${t['audio-ready-text']}</p>`;
+      preview.textContent = res.mdContent;
+      
+      $('#btn-generate-audio').classList.remove('hidden');
+      $('#btn-generate-audio').textContent = t['btn-regenerate-audio'];
+      $('#btn-go-region').classList.remove('hidden');
+    } else {
+      pnl.className = 'status-panel warn';
+      pnl.innerHTML = `<h3>Error</h3><p>${res.error}</p>`;
+    }
+  }
+  showPhase('review');
+}
+
+$('#btn-generate-audio').addEventListener('click', async () => {
+  const btn = $('#btn-generate-audio');
+  btn.disabled = true;
+  btn.textContent = currentLang === 'es' ? 'Generando en background...' : 'Generating in background...';
+  
+  const res = await window.api.generateAudioGuide({ project: state.project, huId: state.selectedHu.id });
+  if (res.success) {
+    state.selectedHu.hasAudio = true;
+    loadHuReview(state.selectedHu);
+  } else {
+    alert('Error: ' + res.error);
+  }
+  
+  btn.disabled = false;
+  btn.textContent = translations[currentLang]['btn-generate-audio'];
+});
+
+$('#btn-back-select').addEventListener('click', () => showPhase('dashboard'));
+
+// ─── Phase 3: Region Select ──────────────────────────────────────────────────
+
+$('#btn-go-region').addEventListener('click', async () => {
+  showPhase('region');
+  
+  const sources = await window.api.getScreenSources();
+  state.screenSources = sources;
+  const select = $('#screen-select');
+  select.innerHTML = `<option value="">-- ${currentLang === 'es' ? 'Selecciona ventana/pantalla' : 'Select window/screen'} --</option>`;
+  sources.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.name;
+    select.appendChild(opt);
+  });
+
+  console.log('[Sources] All available:', sources.map(s => ({ id: s.id, name: s.name, displayId: s.displayId })));
+
+  select.onchange = async (e) => {
+    state.selectedSourceId = e.target.value;
+    // Also save the displayId so the main process can locate the correct monitor
+    const selectedSource = sources.find(s => s.id === state.selectedSourceId);
+    state.selectedDisplayId = selectedSource ? selectedSource.displayId : null;
+    console.log('[Source Selected] sourceId:', state.selectedSourceId, '| displayId:', state.selectedDisplayId);
+    if (state.selectedSourceId) await startPreviewStream(state.selectedSourceId);
+  };
+});
+
+$('#btn-back-review').addEventListener('click', () => {
+  stopPreviewStream();
+  showPhase('review');
+});
+
+const cropBox = $('#crop-box');
+const cropInfo = $('#crop-info');
+const imgEl = $('#preview-image');
+let isDragging = false;
+let dragType = null;
+let startPos = { x: 0, y: 0 };
+let boxPos = { x: 50, y: 50, w: 400, h: 300 };
+
+async function startPreviewStream(sourceId) {
+  stopPreviewStream();
+  const source = state.screenSources.find(s => s.id === sourceId);
+  if (!source || !source.thumbnail) return;
+  
+  imgEl.src = source.thumbnail;
+  imgEl.onload = () => {
+    cropBox.classList.remove('hidden');
+    cropInfo.classList.remove('hidden');
+    updateCropBox();
+  };
+}
+
+function stopPreviewStream() {
+  imgEl.src = '';
+  cropBox.classList.add('hidden');
+  cropInfo.classList.add('hidden');
+}
+
+cropBox.addEventListener('mousedown', e => {
+  isDragging = true;
+  startPos = { x: e.clientX, y: e.clientY };
+  if (e.target.classList.contains('nw')) dragType = 'nw';
+  else if (e.target.classList.contains('ne')) dragType = 'ne';
+  else if (e.target.classList.contains('sw')) dragType = 'sw';
+  else if (e.target.classList.contains('se')) dragType = 'se';
+  else dragType = 'move';
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - startPos.x;
+  const dy = e.clientY - startPos.y;
+  startPos = { x: e.clientX, y: e.clientY };
+
+  if (dragType === 'move') { boxPos.x += dx; boxPos.y += dy; }
+  else if (dragType === 'se') { boxPos.w += dx; boxPos.h += dy; }
+  else if (dragType === 'nw') { boxPos.x += dx; boxPos.y += dy; boxPos.w -= dx; boxPos.h -= dy; }
+  else if (dragType === 'ne') { boxPos.y += dy; boxPos.w += dx; boxPos.h -= dy; }
+  else if (dragType === 'sw') { boxPos.x += dx; boxPos.w -= dx; boxPos.h += dy; }
+  
+  const bounds = imgEl.getBoundingClientRect();
+  boxPos.x = Math.max(0, Math.min(boxPos.x, bounds.width - boxPos.w));
+  boxPos.y = Math.max(0, Math.min(boxPos.y, bounds.height - boxPos.h));
+  boxPos.w = Math.max(100, boxPos.w);
+  boxPos.h = Math.max(100, boxPos.h);
+  
+  updateCropBox();
+});
+
+window.addEventListener('mouseup', () => { isDragging = false; dragType = null; });
+
+function updateCropBox() {
+  cropBox.style.left = boxPos.x + 'px';
+  cropBox.style.top = boxPos.y + 'px';
+  cropBox.style.width = boxPos.w + 'px';
+  cropBox.style.height = boxPos.h + 'px';
+
+  const bounds = imgEl.getBoundingClientRect();
+  const vW = imgEl.naturalWidth || 1920;
+  const vH = imgEl.naturalHeight || 1080;
+  
+  const scale = Math.min(bounds.width / vW, bounds.height / vH);
+  const actW = vW * scale;
+  const actH = vH * scale;
+  const actX = (bounds.width - actW) / 2;
+  const actY = (bounds.height - actH) / 2;
+
+  const cropX = Math.round(((boxPos.x - actX) / actW) * vW);
+  const cropY = Math.round(((boxPos.y - actY) / actH) * vH);
+  const cropW = Math.round((boxPos.w / actW) * vW);
+  const cropH = Math.round((boxPos.h / actH) * vH);
+
+  state.crop = {
+    x: Math.max(0, Math.min(cropX, vW)),
+    y: Math.max(0, Math.min(cropY, vH)),
+    w: Math.max(0, Math.min(cropW, vW)),
+    h: Math.max(0, Math.min(cropH, vH)),
+  };
+  cropInfo.textContent = `X:${state.crop.x} Y:${state.crop.y} | W:${state.crop.w} H:${state.crop.h}`;
+}
+
+// ─── Phase 4: Recording ──────────────────────────────────────────────────────
+
+function base64ToArrayBuffer(b64) {
+  const binaryStr = atob(b64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  return bytes.buffer;
+}
+
+function startTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.recordingStartTime = performance.now();
+  state.timerInterval = setInterval(() => {
+    const elapsed = state.elapsedTimeBeforePause + (performance.now() - state.recordingStartTime) / 1000;
+    $('#recording-timer').textContent = fmtTime(elapsed);
+  }, 200);
+}
+
+function pauseTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+  state.elapsedTimeBeforePause += (performance.now() - state.recordingStartTime) / 1000;
+  $('.recording-dot').classList.add('paused');
+}
+
+$('#btn-start-recording').addEventListener('click', async () => {
+  if (!state.selectedSourceId) { alert(currentLang === 'es' ? 'Selecciona una fuente primero.' : 'Select a source first.'); return; }
+  
+  if (!state.audioContext) state.audioContext = new AudioContext({ sampleRate: 48000 });
+  if (state.audioContext.state === 'suspended') await state.audioContext.resume();
+  
+  const audioData = base64ToArrayBuffer(state.audioBase64);
+  state.audioBuffer = await state.audioContext.decodeAudioData(audioData);
+  
+  state.audioDestination = state.audioContext.createMediaStreamDestination();
+  state.recordedChunks = [];
+  state.mediaRecorder = new MediaRecorder(state.audioDestination.stream, { mimeType: 'audio/webm' });
+  state.mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.recordedChunks.push(e.data); };
+  
+  $('#recording-hu-id').textContent = state.selectedHu.id;
+  $('#script-reference').textContent = translations[currentLang]['script-ref-wait'];
+  
+  const listItems = $('#cp-list-items');
+  listItems.innerHTML = '';
+  state.segments.forEach((seg, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.style = 'text-align: left; font-size: 12px; padding: 6px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; cursor: pointer; margin-bottom: 4px;';
+    btn.textContent = `▶ ${seg.title}`;
+    btn.onclick = () => playSegment(idx);
+    listItems.appendChild(btn);
+  });
+  
+  state.isRecording = true;
+  state.cpTimestamps = [];
+  state.elapsedTimeBeforePause = 0;
+  state.recordingStartTime = performance.now();
+  
+  $('.recording-dot').classList.remove('paused');
+  startTimer();
+ 
+  showPhase('recording');
+  
+  await window.api.startRecording({
+    project: state.project,
+    sprint: state.sprint,
+    huName: state.selectedHu.name,
+    huId: state.selectedHu.id,
+    crop: state.crop,
+    sourceId: state.selectedSourceId,
+    displayId: state.selectedDisplayId
+  });
+ 
+  state.mediaRecorder.start(100);
+
+  // Listen for overlay control buttons (play / pause / stop)
+  window.api.onOverlayControl((action) => {
+    if (action === 'play') {
+      playSegment(-1); // play all continuous from start
+    } else if (action === 'pause') {
+      if (isAudioPlaying) {
+        playOffset += (state.audioContext.currentTime - playStartTime);
+        stopCurrentAudio();
+        pauseTimer();
+      }
+    } else if (action === 'resume') {
+      if (!isAudioPlaying && state.segments[currentSegmentIdx]) {
+        $('.recording-dot').classList.remove('paused');
+        startTimer();
+        playFrom(currentSegmentIdx, playOffset);
+      }
+    } else if (action === 'stop') {
+      stopCurrentAudio();
+      pauseTimer();
+    }
+  });
+});
+ 
+let currentAudioNode = null;
+let playOffset = 0;
+let playStartTime = 0;
+let isAudioPlaying = false;
+let isContinuous = false;
+let currentSegmentIdx = 0;
+ 
+window.stopCurrentAudio = function() {
+  if (currentAudioNode) {
+    currentAudioNode.onended = null;
+    try { currentAudioNode.stop(); } catch(e){}
+    currentAudioNode = null;
+  }
+  isAudioPlaying = false;
+};
+ 
+window.playFrom = function(idx, offsetIntoSegment) {
+  const seg = state.segments[idx];
+  if (!seg) return;
+  
+  $('#script-reference').textContent = seg.text;
+  
+  const cleanText = seg.text.replace(/^[#\s]+/gm, '').trim();
+  window.api.updateOverlayText(cleanText);
+  
+  currentAudioNode = state.audioContext.createBufferSource();
+  currentAudioNode.buffer = state.audioBuffer;
+  currentAudioNode.connect(state.audioDestination);
+  currentAudioNode.connect(state.audioContext.destination);
+  
+  const startPos = seg.start + offsetIntoSegment;
+  const durationLeft = seg.duration - offsetIntoSegment;
+  
+  currentAudioNode.start(0, startPos, durationLeft);
+  currentAudioNode.playbackRate.value = state.playbackSpeed;
+  isAudioPlaying = true;
+  playStartTime = state.audioContext.currentTime;
+  playOffset = offsetIntoSegment;
+  
+  currentAudioNode.onended = () => {
+    isAudioPlaying = false;
+    const now = (performance.now() - state.recordingStartTime) / 1000;
+    state.cpTimestamps.push({ id: seg.title.substring(0, 15).replace(/\s/g, '_'), startSec: startPos, endSec: startPos + durationLeft });
+    if (isContinuous && currentSegmentIdx < state.segments.length - 1) {
+      currentSegmentIdx++;
+      playFrom(currentSegmentIdx, 0);
+    }
+  };
+};
+ 
+window.playSegment = function(idx) {
+  stopCurrentAudio();
+  if (idx === -1) {
+    isContinuous = true;
+    currentSegmentIdx = 0;
+  } else {
+    isContinuous = false;
+    currentSegmentIdx = idx;
+  }
+
+  $('.recording-dot').classList.remove('paused');
+  startTimer();
+
+  playFrom(currentSegmentIdx, 0);
+};
+ 
+$('#btn-pause-resume').addEventListener('click', (e) => {
+  const t = translations[currentLang];
+  const span = e.currentTarget.querySelector('span');
+  const txtSpan = e.currentTarget.querySelector('span:nth-child(2)') || e.currentTarget;
+  if (isAudioPlaying) {
+    playOffset += (state.audioContext.currentTime - playStartTime);
+    stopCurrentAudio();
+    txtSpan.textContent = t['btn-resume-audio'];
+    e.currentTarget.style.backgroundColor = '#2ea043';
+    e.currentTarget.style.color = 'white';
+    if (span) span.textContent = '▶';
+    pauseTimer();
+    window.api.updateOverlayText("[PAUSED]");
+  } else if (state.segments[currentSegmentIdx]) {
+    txtSpan.textContent = t['btn-pause-audio'];
+    e.currentTarget.style.backgroundColor = '#d29922';
+    e.currentTarget.style.color = 'black';
+    if (span) span.textContent = '⏸';
+    $('.recording-dot').classList.remove('paused');
+    startTimer();
+    playFrom(currentSegmentIdx, playOffset);
+  }
+});
+ 
+$('#btn-play-all').addEventListener('click', () => {
+  const btn = $('#btn-pause-resume');
+  const span = btn.querySelector('span');
+  const txtSpan = btn.querySelector('span:nth-child(2)') || btn;
+  txtSpan.textContent = translations[currentLang]['btn-pause-audio'];
+  btn.style.backgroundColor = '#d29922';
+  btn.style.color = 'black';
+  if (span) span.textContent = '⏸';
+  $('.recording-dot').classList.remove('paused');
+  startTimer();
+  playSegment(-1);
+});
+
+$('#playback-speed').addEventListener('input', (e) => {
+  const speed = parseFloat(e.target.value);
+  state.playbackSpeed = speed;
+  $('#speed-label').textContent = speed.toFixed(1) + '×';
+  if (currentAudioNode) {
+    currentAudioNode.playbackRate.value = speed;
+  }
+});
+
+function stopRecording(discard = false) {
+  stopCurrentAudio();
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.isRecording = false;
+  
+  if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+    state.mediaRecorder.onstop = () => {
+      if (discard) {
+        renderProjects();
+        showPhase('dashboard');
+      } else {
+        finalizeRecording();
+      }
+    };
+    state.mediaRecorder.stop();
+  } else {
+    if (discard) {
+      renderProjects();
+      showPhase('dashboard');
+    } else {
+      finalizeRecording();
+    }
+  }
+}
+
+$('#btn-stop-recording-media').addEventListener('click', () => stopRecording(false));
+$('#btn-discard-recording-media').addEventListener('click', () => {
+  const msg = currentLang === 'es' ? '¿Estás seguro de que deseas descartar la grabación actual?' : 'Are you sure you want to discard the current recording?';
+  const title = currentLang === 'es' ? 'Descartar Grabación' : 'Discard Recording';
+  openConfirmModal(title, msg, () => {
+    stopRecording(true);
+  });
+});
+
+// ─── Finalize ────────────────────────────────────────────────────────────────
+
+async function finalizeRecording() {
+  const totalDuration = (performance.now() - state.recordingStartTime) / 1000;
+  
+  if (state.cpTimestamps.length > 0) {
+    state.cpTimestamps[state.cpTimestamps.length - 1].endSec = totalDuration;
+  }
+
+  $('#done-status').innerHTML = `<p><span class="spinner"></span> ${translations[currentLang]['saving-video']}</p>`;
+  showPhase('done');
+  
+  const blob = new Blob(state.recordedChunks, { type: 'audio/webm' });
+  const arrayBuf = await blob.arrayBuffer();
+  const audioBuffer = Array.from(new Uint8Array(arrayBuf));
+
+  const res = await window.api.saveRecording({
+    project: state.project,
+    sprint: state.sprint,
+    huName: state.selectedHu.name,
+    huId: state.selectedHu.id,
+    cps: state.cpTimestamps,
+    timestamps: { duration: totalDuration },
+    audioBuffer: audioBuffer
+  });
+
+  if (res.success) {
+    $('#done-status').innerHTML = `
+      <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+      <h3>${translations[currentLang]['save-success']}</h3>
+      <p>File: <strong>${res.videoFile}</strong></p>
+      <p>${currentLang === 'es' ? `Se registraron ${state.cpTimestamps.length} Casos de Prueba durante la narración.` : `Registered ${state.cpTimestamps.length} Test Cases during narration.`}</p>
+    `;
+  } else {
+    $('#done-status').innerHTML = `
+      <div style="font-size: 40px; color: #f85149; margin-bottom: 20px;">⚠️</div>
+      <h3>${translations[currentLang]['save-error']}</h3>
+      <p style="color: #f85149">${res.error}</p>
+    `;
+  }
+}
+
+$('#btn-record-another').addEventListener('click', () => {
+  renderProjects();
+  showPhase('dashboard');
+});
+
+
+
+// Lang change handler
+$('#lang-select').addEventListener('change', (e) => {
+  currentLang = e.target.value;
+  localStorage.setItem('lang', currentLang);
+  applyTranslations();
+  renderProjects();
+  renderSprints();
+  renderHus();
+});
+
+// Init
+$('#lang-select').value = currentLang;
+applyTranslations();
+
+if (window.api && window.api.platform === 'win32') {
+  $('#titlebar').style.display = 'flex';
+} else {
+  $('#titlebar').style.display = 'none';
+}
+
+renderProjects();
+showPhase('dashboard');

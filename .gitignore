@@ -1,0 +1,74 @@
+# Python Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python cache and build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.eggs/
+*.egg-info/
+build/
+dist/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+generacion_evidencias.log
+
+# Operating System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Project Data Folders (stored locally)
+video/
+audio_guides/
+deliverables/
+projects/
+tools/catalog.html
+
+# Office and Document files
+*.docx
+*.xlsx
+*.xls
+*.doc
+*.pdf
+*.zip
+*.tar.gz
+
+# Ignore all media/image files by default
+*.mp4
+*.avi
+*.mov
+*.wav
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.bmp
+*.ico
+
+# Allow Electron app assets (like icons)
+!recorder/assets/
+!recorder/assets/**
+
+# TTS Voice Models (downloaded automatically via setup.sh)
+recorder/tts-models/

@@ -1,0 +1,13 @@
+{
+    "base_dir": ".",
+    "video_dir": "video",
+    "map_file": "mapa_imagenes.json",
+    "hu_folders": {
+        "HU-6680": "user_stories/sprint-02/CP_HU-6680 Consultar Plantillas de Eventos",
+        "HU-6682": "user_stories/sprint-02/CP_HU-6682 Crear Plantilla de Evento",
+        "HU-6686": "user_stories/sprint-02/CP_HU-6686 Editar Plantilla de Evento",
+        "HU-6687": "user_stories/sprint-02/CP_HU-6687 Consultar Diagrama de Flujo de una Plantilla",
+        "HU-6688": "user_stories/sprint-02/CP_HU-6688 Descargar Diagrama de Flujo en PNG",
+        "HU-6689": "user_stories/sprint-02/CP_HU-6689 Descargar Diagrama de Flujo en PDF"
+    }
+}

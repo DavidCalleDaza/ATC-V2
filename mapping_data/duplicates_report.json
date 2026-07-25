@@ -1,0 +1,357 @@
+{
+  "total_imagenes": 503,
+  "imagenes_descartadas": 58,
+  "imagenes_conservadas": 445,
+  "detalle_descarte": [
+    {
+      "archivo": "scene00691.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene00631.png"
+    },
+    {
+      "archivo": "scene00706.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene00646.png"
+    },
+    {
+      "archivo": "scene00826.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene00811.png"
+    },
+    {
+      "archivo": "scene01486.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene01471.png"
+    },
+    {
+      "archivo": "scene02116.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene02101.png"
+    },
+    {
+      "archivo": "scene02371.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene02356.png"
+    },
+    {
+      "archivo": "scene03991.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene03961.png"
+    },
+    {
+      "archivo": "scene04036.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04096.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04051.png"
+    },
+    {
+      "archivo": "scene04126.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04066.png"
+    },
+    {
+      "archivo": "scene04141.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04081.png"
+    },
+    {
+      "archivo": "scene04171.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04156.png"
+    },
+    {
+      "archivo": "scene04381.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene04366.png"
+    },
+    {
+      "archivo": "scene05161.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene05146.png"
+    },
+    {
+      "archivo": "scene06196.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene06181.png"
+    },
+    {
+      "archivo": "scene06256.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene06241.png"
+    },
+    {
+      "archivo": "scene06781.png",
+      "motivo": "Duplicado Exacto (MD5)",
+      "conservado_como": "scene06766.png"
+    },
+    {
+      "archivo": "scene00136.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0980)",
+      "conservado_como": "scene00121.png"
+    },
+    {
+      "archivo": "scene00451.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0000)",
+      "conservado_como": "scene00436.png"
+    },
+    {
+      "archivo": "scene00631.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00646.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00661.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00676.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00721.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00736.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0002)",
+      "conservado_como": "scene00616.png"
+    },
+    {
+      "archivo": "scene00961.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0029)",
+      "conservado_como": "scene00946.png"
+    },
+    {
+      "archivo": "scene01111.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0000)",
+      "conservado_como": "scene01096.png"
+    },
+    {
+      "archivo": "scene02071.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.4967)",
+      "conservado_como": "scene02056.png"
+    },
+    {
+      "archivo": "scene02086.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0061)",
+      "conservado_como": "scene02056.png"
+    },
+    {
+      "archivo": "scene02101.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0060)",
+      "conservado_como": "scene02056.png"
+    },
+    {
+      "archivo": "scene02176.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.4253)",
+      "conservado_como": "scene02161.png"
+    },
+    {
+      "archivo": "scene02341.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0000)",
+      "conservado_como": "scene02326.png"
+    },
+    {
+      "archivo": "scene02386.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0000)",
+      "conservado_como": "scene02356.png"
+    },
+    {
+      "archivo": "scene02866.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0034)",
+      "conservado_como": "scene02851.png"
+    },
+    {
+      "archivo": "scene03061.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0034)",
+      "conservado_como": "scene03046.png"
+    },
+    {
+      "archivo": "scene03211.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0034)",
+      "conservado_como": "scene03196.png"
+    },
+    {
+      "archivo": "scene03976.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0052)",
+      "conservado_como": "scene03961.png"
+    },
+    {
+      "archivo": "scene04021.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0052)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04051.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0267)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04066.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0245)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04081.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0245)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04111.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0225)",
+      "conservado_como": "scene04006.png"
+    },
+    {
+      "archivo": "scene04201.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0008)",
+      "conservado_como": "scene04186.png"
+    },
+    {
+      "archivo": "scene04756.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0000)",
+      "conservado_como": "scene04741.png"
+    },
+    {
+      "archivo": "scene04771.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0029)",
+      "conservado_como": "scene04741.png"
+    },
+    {
+      "archivo": "scene05116.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0037)",
+      "conservado_como": "scene05101.png"
+    },
+    {
+      "archivo": "scene05176.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0037)",
+      "conservado_como": "scene05146.png"
+    },
+    {
+      "archivo": "scene05221.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0003)",
+      "conservado_como": "scene05206.png"
+    },
+    {
+      "archivo": "scene05731.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0028)",
+      "conservado_como": "scene05716.png"
+    },
+    {
+      "archivo": "scene06091.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.4383)",
+      "conservado_como": "scene06076.png"
+    },
+    {
+      "archivo": "scene06136.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.4953)",
+      "conservado_como": "scene06121.png"
+    },
+    {
+      "archivo": "scene06151.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0759)",
+      "conservado_como": "scene06121.png"
+    },
+    {
+      "archivo": "scene06166.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.2781)",
+      "conservado_como": "scene06121.png"
+    },
+    {
+      "archivo": "scene06211.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0001)",
+      "conservado_como": "scene06181.png"
+    },
+    {
+      "archivo": "scene06226.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0040)",
+      "conservado_como": "scene06181.png"
+    },
+    {
+      "archivo": "scene06241.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0040)",
+      "conservado_como": "scene06181.png"
+    },
+    {
+      "archivo": "scene06976.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.0326)",
+      "conservado_como": "scene06961.png"
+    },
+    {
+      "archivo": "scene07441.png",
+      "motivo": "Fotograma Consecutivo Estático (MSE=0.1033)",
+      "conservado_como": "scene07426.png"
+    }
+  ],
+  "mapa_reemplazo": {
+    "scene00691.png": "scene00631.png",
+    "scene00706.png": "scene00646.png",
+    "scene00826.png": "scene00811.png",
+    "scene01486.png": "scene01471.png",
+    "scene02116.png": "scene02101.png",
+    "scene02371.png": "scene02356.png",
+    "scene03991.png": "scene03961.png",
+    "scene04036.png": "scene04006.png",
+    "scene04096.png": "scene04051.png",
+    "scene04126.png": "scene04066.png",
+    "scene04141.png": "scene04081.png",
+    "scene04171.png": "scene04156.png",
+    "scene04381.png": "scene04366.png",
+    "scene05161.png": "scene05146.png",
+    "scene06196.png": "scene06181.png",
+    "scene06256.png": "scene06241.png",
+    "scene06781.png": "scene06766.png",
+    "scene00136.png": "scene00121.png",
+    "scene00451.png": "scene00436.png",
+    "scene00631.png": "scene00616.png",
+    "scene00646.png": "scene00616.png",
+    "scene00661.png": "scene00616.png",
+    "scene00676.png": "scene00616.png",
+    "scene00721.png": "scene00616.png",
+    "scene00736.png": "scene00616.png",
+    "scene00961.png": "scene00946.png",
+    "scene01111.png": "scene01096.png",
+    "scene02071.png": "scene02056.png",
+    "scene02086.png": "scene02056.png",
+    "scene02101.png": "scene02056.png",
+    "scene02176.png": "scene02161.png",
+    "scene02341.png": "scene02326.png",
+    "scene02386.png": "scene02356.png",
+    "scene02866.png": "scene02851.png",
+    "scene03061.png": "scene03046.png",
+    "scene03211.png": "scene03196.png",
+    "scene03976.png": "scene03961.png",
+    "scene04021.png": "scene04006.png",
+    "scene04051.png": "scene04006.png",
+    "scene04066.png": "scene04006.png",
+    "scene04081.png": "scene04006.png",
+    "scene04111.png": "scene04006.png",
+    "scene04201.png": "scene04186.png",
+    "scene04756.png": "scene04741.png",
+    "scene04771.png": "scene04741.png",
+    "scene05116.png": "scene05101.png",
+    "scene05176.png": "scene05146.png",
+    "scene05221.png": "scene05206.png",
+    "scene05731.png": "scene05716.png",
+    "scene06091.png": "scene06076.png",
+    "scene06136.png": "scene06121.png",
+    "scene06151.png": "scene06121.png",
+    "scene06166.png": "scene06121.png",
+    "scene06211.png": "scene06181.png",
+    "scene06226.png": "scene06181.png",
+    "scene06241.png": "scene06181.png",
+    "scene06976.png": "scene06961.png",
+    "scene07441.png": "scene07426.png"
+  }
+}

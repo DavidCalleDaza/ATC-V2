@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automatic test case — Grabador de Evidencias</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="titlebar" style="height: 32px; background: #070a0e; display: none; align-items: center; justify-content: center; -webkit-app-region: drag; color: #8b949e; font-size: 12px; border-bottom: 1px solid var(--border-color); user-select: none;">
+    <span data-i18n="window-title">Automatic test case — Grabador de Evidencias</span>
+  </div>
+  <div id="app" style="display: flex; flex-direction: row; gap: 20px; height: 100%; max-width: 100%; margin: 0; padding: 20px; width: 100%;">
+    <!-- Left Sidebar / Lienzo de acciones futuras -->
+    <aside id="sidebar-canvas" style="width: 250px; min-width: 250px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+      <h3 style="font-size: 16px; color: var(--accent-color); margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;" data-i18n="sidebar-actions-title">Actions</h3>
+      <div id="sidebar-actions-container" style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: flex-start; padding-top: 10px;">
+        <button id="btn-upload-files" class="btn btn-secondary w-full hidden" data-i18n="btn-upload" style="width: 100%;">Attach / Upload Files</button>
+        <button id="btn-start-flow" class="btn btn-primary w-full hidden" data-i18n="btn-start-flow" style="width: 100%; margin-top: 5px;">➜ Go to Record Evidences</button>
+      </div>
+
+      <!-- User Story sub section during Review/Recording -->
+      <div id="sidebar-hu-details" class="hidden" style="border-top: 1px solid var(--border-color); padding-top: 15px; display: flex; flex-direction: column; gap: 12px; width: 100%;">
+        <h4 style="font-size: 14px; color: var(--accent-color); margin: 0;" data-i18n="sidebar-story-details">User Story</h4>
+        <div id="sidebar-hu-title" style="color: #fff; font-size: 13px; font-weight: 500; word-break: break-all;"></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            <span style="font-weight: 500; font-size: 11px; color: var(--text-color);" data-i18n="status-excel-label">Design Excel:</span>
+            <span id="sidebar-status-excel" class="badge" style="font-size: 10px; padding: 2px 6px;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            <span style="font-weight: 500; font-size: 11px; color: var(--text-color);" data-i18n="status-word-label">Word Template:</span>
+            <span id="sidebar-status-word" class="badge" style="font-size: 10px; padding: 2px 6px;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px;">
+            <span style="font-weight: 500; font-size: 11px; color: var(--text-color);" data-i18n="status-audio-label">Audio Guide:</span>
+            <span id="sidebar-status-audio" class="badge" style="font-size: 10px; padding: 2px 6px;"></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div id="main-content" style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+      <!-- Header -->
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="../assets/icon.png" alt="Automatic test case Logo" style="width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div>
+            <h1 style="line-height: 1.2;" data-i18n="app-title">Automatic test case</h1>
+            <span class="subtitle" data-i18n="app-subtitle">Synchronized Evidence Recorder</span>
+          </div>
+        </div>
+        <div class="lang-selector" style="display: flex; align-items: center; gap: 8px;">
+          <label for="lang-select" style="font-size: 13px; color: #8b949e;" data-i18n="lang-label">Language:</label>
+          <select id="lang-select" style="min-width: 100px; padding: 4px 8px; font-size: 13px; height: 30px; border-radius: 6px; background: var(--bg-panel); color: var(--text-color); border: 1px solid var(--border-color);">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+      </header>
+
+      <!-- Layout de Fase 0 (Dashboard) y su panel lateral derecho -->
+      <div id="phase-dashboard-layout" style="display: flex; flex-direction: row; gap: 20px; flex: 1; min-height: 0;">
+        <!-- Phase 0: Dashboard (Gestor de Proyectos) -->
+        <section id="phase-dashboard" class="phase" style="flex: 1; min-width: 0;">
+          <h2 data-i18n="phase0-title">0. Projects Dashboard</h2>
+          
+          <div class="dashboard-grid">
+            <!-- Columna de Proyectos -->
+            <div class="dash-col">
+              <div class="dash-col-header">
+                <h3 data-i18n="col-projects">Projects</h3>
+                <button id="btn-add-project" class="btn btn-small btn-primary" data-i18n="btn-new">+ New</button>
+              </div>
+              <div class="dash-list" id="dash-projects-list">Loading...</div>
+            </div>
+
+            <!-- Columna de Sprints -->
+            <div class="dash-col">
+              <div class="dash-col-header">
+                <h3 data-i18n="col-sprints">Sprints</h3>
+                <button id="btn-add-sprint" class="btn btn-small btn-primary hidden" data-i18n="btn-new">+ New</button>
+              </div>
+              <div class="dash-list" id="dash-sprints-list">Select a project...</div>
+            </div>
+
+            <!-- Columna de HUs y Archivos -->
+            <div class="dash-col flex-2">
+              <div class="dash-col-header">
+                <h3 data-i18n="col-hus">User Stories</h3>
+                <button id="btn-add-hu" class="btn btn-small btn-primary hidden" data-i18n="btn-new-hu">+ New HU</button>
+              </div>
+              <div class="dash-list" id="dash-hus-list">Select a sprint...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Drawer for User Story Details -->
+        <aside id="right-drawer" style="width: 0; min-width: 0; background: var(--bg-panel); border-left: 0 solid var(--border-color); padding: 0; display: flex; flex-direction: column; gap: 15px; overflow: hidden; transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border-left-width 0.3s ease; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+            <h3 style="font-size: 16px; color: var(--accent-color); margin: 0;" id="right-drawer-title">Details</h3>
+            <button id="btn-hu-details-close" class="btn btn-icon" style="font-size: 16px; color: var(--text-color);">✕</button>
+          </div>
+          <div id="right-drawer-content" style="display: flex; flex-direction: column; gap: 15px; flex: 1; padding-top: 10px; width: 280px;">
+            <!-- Dinámico por JS -->
+          </div>
+        </aside>
+      </div>
+
+    <!-- Phase 1: Review & Generate Audio -->
+    <section id="phase-review" class="phase hidden">
+      <h2 data-i18n="phase1-title">1. Prepare Audio Guide</h2>
+      
+      <div id="audio-status-panel" class="status-panel">
+        <!-- Content injected by JS -->
+      </div>
+      
+      <div id="cp-script-preview" class="cp-preview">
+        <!-- Markdown content injected by JS -->
+      </div>
+
+      <div class="phase-actions">
+        <button id="btn-back-select" class="btn btn-secondary" data-i18n="btn-back">Back</button>
+        <button id="btn-generate-audio" class="btn btn-primary hidden" data-i18n="btn-generate-audio">Generate Audio with Python</button>
+        <button id="btn-go-region" class="btn btn-primary hidden" data-i18n="btn-go-region">Next: Select Region</button>
+      </div>
+    </section>
+
+    <!-- Phase 2: Region Select -->
+    <section id="phase-region" class="phase hidden">
+      <h2 data-i18n="phase2-title">2. Select Region to Record</h2>
+      <p data-i18n="phase2-desc">Select the screen you wish to record and adjust the frame over the exact region that will be captured in the video.</p>
+
+      <div class="source-selector">
+        <label for="screen-select" data-i18n="screen-label">Screen/Window:</label>
+        <select id="screen-select">
+          <option value="" data-i18n="screen-loading">Loading sources...</option>
+        </select>
+      </div>
+
+      <div class="region-preview-container">
+        <img id="preview-image" style="width: 100%; max-height: 70vh; object-fit: contain; pointer-events: none;">
+        <div id="crop-box" class="crop-box hidden">
+          <div class="resize-handle nw"></div>
+          <div class="resize-handle ne"></div>
+          <div class="resize-handle sw"></div>
+          <div class="resize-handle se"></div>
+        </div>
+        <div id="crop-info" class="crop-info hidden">X: 0, Y: 0 | W: 0, H: 0</div>
+      </div>
+
+      <div class="phase-actions mt-15">
+        <button id="btn-back-review" class="btn btn-secondary" data-i18n="btn-back">Back</button>
+        <button id="btn-start-recording" class="btn btn-primary" data-i18n="btn-start-recording">Start Recording</button>
+      </div>
+    </section>
+
+    <!-- Phase 3: Recording -->
+    <section id="phase-recording" class="phase hidden">
+      <h2><span data-i18n="phase3-title">3. Recording </span><span id="recording-hu-id"></span></h2>
+      
+      <div id="recording-status" class="recording-status">
+        <span class="recording-dot"></span>
+        <span id="recording-timer">00:00</span>
+      </div>
+
+      <div class="recording-layout">
+        <!-- Left: Audio visualization & current CP -->
+        <div class="recording-left">
+          
+          <div id="cp-playlist" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+            <button id="btn-play-all" class="btn" style="width:100%; margin-bottom:10px; background-color: #2ea043; color: white; border: none; padding: 8px;" data-i18n="btn-play-all">▶ Play All Continuous</button>
+            <div id="cp-list-items" style="display: flex; flex-direction: column; gap: 5px;"></div>
+          </div>
+          
+          <div class="recording-actions mt-15" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- SPEED SLIDER -->
+            <div class="speed-control" style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span data-i18n="voice-speed">Voice Speed:</span>
+                <span id="speed-label" style="font-weight: bold; color: #58a6ff;">0.9×</span>
+              </div>
+              <input type="range" id="playback-speed" class="speed-slider" min="0.5" max="1.5" step="0.1" value="0.9" style="width: 100%; cursor: pointer;">
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: space-between;">
+              <button id="btn-pause-resume" class="btn" style="background-color: #d29922; color: #000; flex: 1; border: none; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <span>⏸</span> <span data-i18n="btn-pause-audio">Pause Audio</span>
+              </button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+              <button id="btn-stop-recording-media" class="btn btn-primary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; background-color: #f85149; font-weight: bold; border-color: rgba(240,246,252,0.1);">
+                <span>⏹</span> <span data-i18n="btn-stop-recording">Stop Recording</span>
+              </button>
+              <button id="btn-discard-recording-media" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold;">
+                <span>❌</span> <span data-i18n="btn-discard-recording">Discard</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Script reference -->
+        <div class="recording-right">
+          <h3 data-i18n="script-ref-title">Reference Script</h3>
+          <div class="script-box" style="height: 350px; overflow-y: auto; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;">
+            <pre id="script-reference" style="white-space: pre-wrap; font-size: 13px; margin: 0; color: #c9d1d9; font-family: monospace;" data-i18n="script-ref-wait">Waiting... Select a block from the list to narrate.</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phase 4: Done -->
+    <section id="phase-done" class="phase hidden">
+      <h2 data-i18n="phase4-title">4. Recording Finished</h2>
+      <div id="done-status" class="done-status"></div>
+      <div class="phase-actions">
+        <button id="btn-record-another" class="btn btn-primary" data-i18n="btn-back-home">Back to Home</button>
+      </div>
+    </section>
+    </div> <!-- Cerrar #main-content -->
+
+  </div> <!-- Cerrar #app -->
+
+  <!-- Modals -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">Create</h3>
+      <div class="modal-body">
+        <input type="text" id="modal-input" placeholder="Type here..." class="modal-input">
+      </div>
+      <div class="modal-actions">
+        <button id="btn-modal-cancel" class="btn btn-secondary" data-i18n="btn-back">Cancel</button>
+        <button id="btn-modal-save" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

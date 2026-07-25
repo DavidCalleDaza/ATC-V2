@@ -1,0 +1,26 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+  platform: process.platform,
+  getProjects: () => ipcRenderer.invoke('get-projects'),
+  getSprints: (project) => ipcRenderer.invoke('get-sprints', project),
+  getHus: (data) => ipcRenderer.invoke('get-hus', data),
+  createProject: (name) => ipcRenderer.invoke('create-project', name),
+  renameProject: (data) => ipcRenderer.invoke('rename-project', data),
+  deleteProject: (name) => ipcRenderer.invoke('delete-project', name),
+  createSprint: (data) => ipcRenderer.invoke('create-sprint', data),
+  renameSprint: (data) => ipcRenderer.invoke('rename-sprint', data),
+  deleteSprint: (data) => ipcRenderer.invoke('delete-sprint', data),
+  createHu: (data) => ipcRenderer.invoke('create-hu', data),
+  renameHu: (data) => ipcRenderer.invoke('rename-hu', data),
+  deleteHu: (data) => ipcRenderer.invoke('delete-hu', data),
+  uploadFile: (data) => ipcRenderer.invoke('upload-file', data),
+  selectFiles: () => ipcRenderer.invoke('select-files'),
+  generateAudioGuide: (data) => ipcRenderer.invoke('generate-audio-guide', data),
+  loadAudioGuide: (data) => ipcRenderer.invoke('load-audio-guide', data),
+  getScreenSources: () => ipcRenderer.invoke('get-screen-sources'),
+  saveRecording: (data) => ipcRenderer.invoke('save-recording', data),
+  startRecording: (data) => ipcRenderer.invoke('start-recording', data),
+  updateOverlayText: (text) => ipcRenderer.invoke('update-overlay-text', text),
+  onOverlayControl: (cb) => ipcRenderer.on('overlay-control', (_e, action) => cb(action)),
+});
