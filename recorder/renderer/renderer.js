@@ -323,6 +323,18 @@ function fmtTime(sec) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+// ─── Drawer helpers (open/close + compact mode toggle) ──────────────────────
+function openDrawer() {
+  $('#right-drawer').classList.add('open');
+  const grid = $('.dashboard-grid');
+  if (grid) grid.classList.add('drawer-open');
+}
+function closeDrawer() {
+  $('#right-drawer').classList.remove('open');
+  const grid = $('.dashboard-grid');
+  if (grid) grid.classList.remove('drawer-open');
+}
+
 // ─── Phase 0: Dashboard (Proyectos, Sprints, HUs) ────────────────────────────
 
 async function renderProjects() {
@@ -420,7 +432,7 @@ async function renderProjects() {
       const isSameProject = state.drawerType === 'project' && state.drawerItem === p;
       
       if (currentlyOpen && isSameProject) {
-        $('#right-drawer').classList.remove('open');
+        closeDrawer();
         state.drawerType = null;
         state.drawerItem = null;
         renderProjects();
@@ -428,7 +440,7 @@ async function renderProjects() {
         state.drawerType = 'project';
         state.drawerItem = p;
         showProjectDetails(p);
-        $('#right-drawer').classList.add('open');
+        openDrawer();
         renderProjects();
         renderSprints();
         renderHus();
@@ -555,7 +567,7 @@ async function renderSprints() {
       const isSameSprint = state.drawerType === 'sprint' && state.drawerItem === s;
       
       if (currentlyOpen && isSameSprint) {
-        $('#right-drawer').classList.remove('open');
+        closeDrawer();
         state.drawerType = null;
         state.drawerItem = null;
         renderSprints();
@@ -563,7 +575,7 @@ async function renderSprints() {
         state.drawerType = 'sprint';
         state.drawerItem = s;
         showSprintDetails(state.project, s);
-        $('#right-drawer').classList.add('open');
+        openDrawer();
         renderProjects();
         renderSprints();
         renderHus();
@@ -662,13 +674,13 @@ async function renderHus() {
       const isSameHu = state.selectedHu?.id === hu.id;
       
       if (currentlyOpen && isSameHu) {
-        $('#right-drawer').classList.remove('open');
+        closeDrawer();
         state.selectedHu = null;
         renderHus();
       } else {
         state.selectedHu = hu;
         showHuDetails(hu);
-        $('#right-drawer').classList.add('open');
+        openDrawer();
         renderHus();
       }
     };
@@ -779,7 +791,7 @@ function renderCps() {
       e.stopPropagation();
       state.selectedCp = cp;
       showCpDetail(cp);
-      $('#right-drawer').classList.add('open');
+      openDrawer();
       renderCps();
     };
     el.appendChild(btnView);
@@ -813,7 +825,7 @@ function renderCps() {
           state.selectedCp = null;
           await persistTestCases();
           renderCps();
-          $('#right-drawer').classList.remove('open');
+          closeDrawer();
         }
       });
     };
@@ -825,7 +837,7 @@ function renderCps() {
     el.onclick = () => {
       state.selectedCp = cp;
       showCpDetail(cp);
-      $('#right-drawer').classList.add('open');
+      openDrawer();
       renderCps();
     };
 
@@ -957,7 +969,7 @@ function showCpDetail(cp) {
 
   $('#btn-cp-detail-back').onclick = () => {
     state.selectedCp = null;
-    $('#right-drawer').classList.remove('open');
+    closeDrawer();
     renderCps();
   };
 }
@@ -1098,7 +1110,7 @@ function makeSortable(containerId, type, onOrderChange) {
 
 // Modal de detalles HU cerrar
 $('#btn-hu-details-close').onclick = () => {
-  $('#right-drawer').classList.remove('open');
+  closeDrawer();
   state.drawerType = null;
   state.drawerItem = null;
   renderProjects();
@@ -1344,7 +1356,7 @@ async function loadHuReview(hu) {
   state.selectedHu = hu;
   
   // Close details drawer if open
-  $('#right-drawer').classList.remove('open');
+  closeDrawer();
   
   // Show and update the sidebar HU details sub section
   const sidebarHuDetails = $('#sidebar-hu-details');

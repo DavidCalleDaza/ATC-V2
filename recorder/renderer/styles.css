@@ -99,6 +99,73 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
 .recording-dot.paused { background-color: #8b949e !important; animation: none !important; }
 #right-drawer.open { width: 320px !important; min-width: 320px !important; padding: 20px !important; border-left: 1px solid var(--border-color) !important; }
 
+/* ── Dashboard Compact Mode (when drawer is open) ── */
+.dashboard-grid .dash-col {
+  transition: flex 0.3s ease, min-width 0.3s ease;
+}
+.dashboard-grid.drawer-open .dash-col:nth-child(1),
+.dashboard-grid.drawer-open .dash-col:nth-child(2) {
+  flex: 0 0 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  overflow: hidden;
+}
+/* Hide action buttons in compact columns */
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-col-header button,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-col-header button,
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .item-actions,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .item-actions,
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .btn-icon.view,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .btn-icon.view {
+  display: none !important;
+}
+/* Compact header: vertical label */
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-col-header,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-col-header {
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  gap: 4px;
+  justify-content: center;
+}
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-col-header h3,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-col-header h3 {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+/* Compact items: vertical text */
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-item,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-item {
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  text-align: center;
+  gap: 4px;
+}
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-item span:first-child,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-item span:first-child {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 10px;
+  max-height: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+/* Compact list: reduce padding */
+.dashboard-grid.drawer-open .dash-col:nth-child(1) .dash-list,
+.dashboard-grid.drawer-open .dash-col:nth-child(2) .dash-list {
+  padding: 6px 4px;
+  gap: 3px;
+  align-items: center;
+}
+
 /* ── Exploratory Testing CSS ── */
 #video-drag-zone.dragover {
   border-color: var(--accent-color) !important;
