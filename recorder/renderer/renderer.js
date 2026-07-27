@@ -95,6 +95,12 @@ const translations = {
     "cp-positive": "Positive",
     "cp-negative": "Negative",
     "cp-no-data": "No test cases parsed. Click 'Parse Excel' first.",
+    "cp-detail-back": "Back to list",
+    "cp-detail-resumen": "Summary:",
+    "cp-detail-precondiciones": "Preconditions:",
+    "cp-detail-pasos": "Steps:",
+    "cp-detail-resultado": "Expected Result:",
+    "cp-detail-contexto": "Context:",
   },
   es: {
     "app-title": "Automatización de casos de prueba",
@@ -192,6 +198,12 @@ const translations = {
     "cp-positive": "Positivo",
     "cp-negative": "Negativo",
     "cp-no-data": "No hay CPs parseados. Haz clic en 'Parsear Excel' primero.",
+    "cp-detail-back": "Volver a la lista",
+    "cp-detail-resumen": "Resumen:",
+    "cp-detail-precondiciones": "Precondiciones:",
+    "cp-detail-pasos": "Pasos:",
+    "cp-detail-resultado": "Resultado Esperado:",
+    "cp-detail-contexto": "Contexto:",
   }
 };
 
@@ -727,6 +739,39 @@ async function showSprintDetails(project, s) {
   `;
 }
 
+function showCpDetail(cp, hu) {
+  const t = translations[currentLang];
+  const field = (label, value) => `
+    <div style="margin-bottom: 10px;">
+      <span style="font-weight: 600; font-size: 11px; color: var(--accent-color); text-transform: uppercase;">${label}</span>
+      <div style="font-size: 12px; color: var(--text-color); margin-top: 3px; white-space: pre-wrap; line-height: 1.4;">${value || '-'}</div>
+    </div>
+  `;
+
+  $('#right-drawer-content').innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+      <button id="btn-cp-detail-back" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; min-width: auto;">
+        ← ${t['cp-detail-back']}
+      </button>
+      <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 10px;">
+        ${cp.is_positive ? t['cp-positive'] : t['cp-negative']}
+      </span>
+    </div>
+    <h4 style="color: #fff; font-size: 14px; word-break: break-all; margin-bottom: 12px;">
+      <span style="color: var(--accent-color); font-weight: 700;">${cp.id}</span> — ${cp.nombre || ''}
+    </h4>
+    <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
+      ${field(t['cp-detail-resumen'], cp.resumen)}
+      ${field(t['cp-detail-contexto'], cp.contexto)}
+      ${field(t['cp-detail-precondiciones'], cp.precondiciones)}
+      ${field(t['cp-detail-pasos'], cp.pasos)}
+      ${field(t['cp-detail-resultado'], cp.resultado_esperado)}
+    </div>
+  `;
+
+  $('#btn-cp-detail-back').onclick = () => showHuDetails(hu);
+}
+
 function showHuDetails(hu) {
   const t = translations[currentLang];
   $('#right-drawer-title').textContent = translations[currentLang]['col-hus'];
@@ -749,8 +794,8 @@ function showHuDetails(hu) {
               </tr>
             </thead>
             <tbody>
-              ${parsedCps.map(cp => `
-                <tr style="border-bottom: 1px solid var(--border-color);">
+              ${parsedCps.map((cp, idx) => `
+                <tr data-cp-idx="${idx}" style="border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s;">
                   <td style="padding: 5px 8px; color: var(--text-color); font-weight: 500;">${cp.id}</td>
                   <td style="padding: 5px 8px; color: var(--text-color);">${cp.nombre || '-'}</td>
                   <td style="padding: 5px 8px;">
@@ -795,6 +840,19 @@ function showHuDetails(hu) {
   $('#btn-start-flow').disabled = !hu.hasExcel;
   $('#btn-upload-files').classList.remove('hidden');
   $('#btn-start-flow').classList.remove('hidden');
+
+  const parsedCpsDetail = state.parsedTestCases && state.parsedTestCases[hu.id];
+  if (parsedCpsDetail) {
+    const rows = document.querySelectorAll('#right-drawer-content tbody tr[data-cp-idx]');
+    rows.forEach(row => {
+      row.addEventListener('mouseenter', () => { row.style.background = 'var(--bg-panel)'; });
+      row.addEventListener('mouseleave', () => { row.style.background = ''; });
+      row.addEventListener('click', () => {
+        const idx = parseInt(row.dataset.cpIdx);
+        if (parsedCpsDetail[idx]) showCpDetail(parsedCpsDetail[idx], hu);
+      });
+    });
+  }
 }
 
 // Subida de archivos
