@@ -34,4 +34,5 @@ contextBridge.exposeInMainWorld('api', {
   readEvidenceMeta: (data) => ipcRenderer.invoke('read-evidence-meta', data),
   updateEvidenceMeta: (data) => ipcRenderer.invoke('update-evidence-meta', data),
   organizeInsumos: (data) => ipcRenderer.invoke('organize-insumos', data),
+  generateEvidence: (data) => ipcRenderer.invoke('generate-evidence', data),
 });

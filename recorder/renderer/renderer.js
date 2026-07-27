@@ -62,6 +62,7 @@ const translations = {
     "window-title": "Automatic test case — Evidence Recorder",
     "btn-exploratory": "🔍 Exploratory Testing",
     "btn-organize-insumos": "📦 Organize Supplies",
+    "btn-generate-evidence": "📄 Generate Evidence",
     "phase-exploratory-title": "Exploratory Testing Workspace",
     "exp-project": "Project",
     "exp-sprint": "Sprint",
@@ -149,6 +150,7 @@ const translations = {
     "window-title": "Automatic test case — Grabador de Evidencias",
     "btn-exploratory": "🔍 Pruebas Exploratorias",
     "btn-organize-insumos": "📦 Organizar Insumos",
+    "btn-generate-evidence": "📄 Generar Evidencia",
     "phase-exploratory-title": "Espacio de Trabajo de Pruebas Exploratorias",
     "exp-project": "Proyecto",
     "exp-sprint": "Sprint",
@@ -388,6 +390,7 @@ async function renderProjects() {
 
   $('#btn-add-sprint').classList.toggle('hidden', !state.project);
   $('#btn-organize-insumos').classList.toggle('hidden', !state.project);
+  $('#btn-generate-evidence').classList.toggle('hidden', !state.project);
   makeSortable('dash-projects-list', 'project', (newOrder) => {
     localStorage.setItem('projectsOrder', JSON.stringify(newOrder));
   });
@@ -956,6 +959,25 @@ $('#btn-organize-insumos').addEventListener('click', async () => {
         ? `Proyecto "${state.project}" organizado.\n\nHUs procesadas: ${res.totalHus}\nArchivos movidos: ${res.totalMoved}`
         : `Project "${state.project}" organized.\n\nHUs processed: ${res.totalHus}\nFiles moved: ${res.totalMoved}`;
       showDarkAlert(t['btn-organize-insumos'], msg);
+    } else {
+      alert('Error: ' + res.error);
+    }
+  });
+});
+
+$('#btn-generate-evidence').addEventListener('click', async () => {
+  if (!state.project) return;
+  const t = translations[currentLang];
+  const confirmMsg = currentLang === 'es'
+    ? `Se generará el documento de evidencia para todas las HUs del proyecto "${state.project}". Esto analizará los Insumos y los relacionará con los casos de prueba del Excel. ¿Continuar?`
+    : `Evidence documents will be generated for all HUs in project "${state.project}". This will analyze Insumos and match them with test cases from Excel. Continue?`;
+  openConfirmModal(t['btn-generate-evidence'], confirmMsg, async () => {
+    const res = await window.api.generateEvidence({ project: state.project });
+    if (res.success) {
+      const msg = currentLang === 'es'
+        ? `Evidencia generada exitosamente para el proyecto "${state.project}".\n\nLos documentos Word se guardaron en cada carpeta de HU.`
+        : `Evidence generated successfully for project "${state.project}".\n\nWord documents were saved in each HU folder.`;
+      showDarkAlert(t['btn-generate-evidence'], msg);
     } else {
       alert('Error: ' + res.error);
     }

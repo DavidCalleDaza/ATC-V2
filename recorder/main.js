@@ -478,6 +478,25 @@ ipcMain.handle('organize-insumos', async (_event, { project }) => {
   }
 });
 
+// ── Generar Evidencia (evidence-v2) ───────────────────────────────────────────
+
+ipcMain.handle('generate-evidence', async (_event, { project, sprint, huId }) => {
+  try {
+    const args = ['evidence-v2', '--project', project];
+    if (huId) {
+      args.push('--hu', huId);
+    } else if (sprint) {
+      args.push('--sprint', sprint);
+    } else {
+      args.push('--all');
+    }
+    await runPythonCommand(args);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ── Handlers de Generación ────────────────────────────────────────────────────
 
 ipcMain.handle('generate-audio-guide', async (_event, { project, huId }) => {

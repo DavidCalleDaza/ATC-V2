@@ -5,6 +5,7 @@ main.py — CLI unificado del proyecto automatic-test-case.
 Subcomandos:
   audio-guide   Genera audio-guía narrada para ejecución de pruebas
   evidence      Genera documentos Word de evidencia (pipeline original)
+  evidence-v2   Genera evidencia analizando Insumos con matching inteligente
   create-suite  Crea estructura Test_Suite/ con carpetas y .md por CP
   recorder      Lanza la aplicación de grabación de pantalla (Electron)
 
@@ -149,6 +150,53 @@ def cmd_evidence(args):
     logging.info("=== PROCESO DE EVIDENCIAS COMPLETADO ===")
 
 
+# ── Subcomando: evidence-v2 (matching inteligente desde Insumos) ───────────────
+
+def cmd_evidence_v2(args):
+    """Genera documentos Word de evidencia analizando Insumos/ con matching inteligente."""
+    from src.generators.evidence_generator import EvidenceGenerator
+    from src.data.story_scanner import scan_hu_folders, scan_all_hu_folders, find_hu_folder
+
+    generator = EvidenceGenerator(BASE_DIR)
+    project = args.project
+    results = []
+
+    if args.hu:
+        hu_folder = find_hu_folder(BASE_DIR, args.hu, project_name=project)
+        if not hu_folder:
+            print(f"✗ No se encontró carpeta para {args.hu}")
+            sys.exit(1)
+        result = generator.process_hu(hu_folder.path)
+        if result:
+            results.append(result)
+            print(f"\n✓ Evidencia generada: {result}")
+
+    elif args.sprint:
+        folders = scan_hu_folders(BASE_DIR, args.sprint, project_name=project)
+        for hu in folders:
+            if hu.has_excel:
+                result = generator.process_hu(hu.path)
+                if result:
+                    results.append(result)
+        print(f"\n✓ {len(results)} evidencias generadas para {args.sprint}")
+
+    elif args.all:
+        folders = scan_all_hu_folders(BASE_DIR, project_name=project)
+        for hu in folders:
+            if hu.has_excel:
+                result = generator.process_hu(hu.path)
+                if result:
+                    results.append(result)
+        print(f"\n✓ {len(results)} evidencias generadas en total")
+
+    else:
+        print("Especifica --hu, --sprint o --all. Usa --help para más info.")
+        sys.exit(1)
+
+    if not results:
+        print("✗ No se generaron documentos de evidencia")
+
+
 # ── Subcomando: create-suite ───────────────────────────────────────────────────
 
 def cmd_create_suite(args):
@@ -214,6 +262,17 @@ def build_parser() -> argparse.ArgumentParser:
     ev_group.add_argument("--hu", type=str, help="ID de HU específica")
     ev_group.add_argument("--all", action="store_true", default=True, help="Procesar todas las HU (default)")
 
+    # evidence-v2
+    ev2 = subparsers.add_parser(
+        "evidence-v2",
+        help="Genera evidencia analizando Insumos con matching inteligente"
+    )
+    ev2_group = ev2.add_mutually_exclusive_group()
+    ev2_group.add_argument("--hu", type=str, help="ID de HU específica (ej: HU-6682)")
+    ev2_group.add_argument("--sprint", type=str, help="Sprint a procesar (ej: sprint-02)")
+    ev2_group.add_argument("--all", action="store_true", help="Procesar todos los sprints")
+    ev2.add_argument("--project", type=str, required=True, help="Nombre del proyecto")
+
     # create-suite
     cs = subparsers.add_parser(
         "create-suite",
@@ -241,6 +300,7 @@ def main():
     commands = {
         "audio-guide": cmd_audio_guide,
         "evidence": cmd_evidence,
+        "evidence-v2": cmd_evidence_v2,
         "create-suite": cmd_create_suite,
         "recorder": cmd_recorder,
     }

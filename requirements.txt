@@ -1,0 +1,24 @@
+# automatic-test-case — Dependencias Python
+# Instalar: pip install -r requirements.txt
+
+# Core
+pandas>=2.0
+openpyxl>=3.1
+python-docx>=1.1
+
+# OCR y procesamiento de imágenes
+pytesseract>=0.3.10
+opencv-python-headless>=4.8
+Pillow>=10.0
+numpy>=1.24
+imagehash>=4.3
+
+# Matching y NLP
+thefuzz>=0.20
+sentence-transformers>=2.2
+
+# IA (opcional, requiere GEMINI_API_KEY)
+google-genai>=0.3
+
+# Audio
+openai-whisper>=20230918
