@@ -61,6 +61,7 @@ const translations = {
     "input-placeholder-name": "Enter name...",
     "window-title": "Automatic test case — Evidence Recorder",
     "btn-exploratory": "🔍 Exploratory Testing",
+    "btn-parse-excel": "📋 Parse Excel",
     "btn-organize-insumos": "📦 Organize Supplies",
     "btn-generate-evidence": "📄 Generate Evidence",
     "phase-exploratory-title": "Exploratory Testing Workspace",
@@ -86,7 +87,14 @@ const translations = {
     "import-choice-desc": "How would you like to import the project?",
     "import-zip-btn": "ZIP Archive (physical compressed file)",
     "import-folder-btn": "System Folder (physical folder directory)",
-    "btn-import-project": "Import Project"
+    "btn-import-project": "Import Project",
+    "cp-table-id": "CP ID",
+    "cp-table-name": "Test Case Name",
+    "cp-table-result": "Expected Result",
+    "cp-table-type": "Type",
+    "cp-positive": "Positive",
+    "cp-negative": "Negative",
+    "cp-no-data": "No test cases parsed. Click 'Parse Excel' first.",
   },
   es: {
     "app-title": "Automatización de casos de prueba",
@@ -149,6 +157,7 @@ const translations = {
     "input-placeholder-name": "Escribe aquí...",
     "window-title": "Automatic test case — Grabador de Evidencias",
     "btn-exploratory": "🔍 Pruebas Exploratorias",
+    "btn-parse-excel": "📋 Parsear Excel",
     "btn-organize-insumos": "📦 Organizar Insumos",
     "btn-generate-evidence": "📄 Generar Evidencia",
     "phase-exploratory-title": "Espacio de Trabajo de Pruebas Exploratorias",
@@ -175,7 +184,14 @@ const translations = {
     "import-choice-desc": "¿Cómo desea importar el proyecto?",
     "import-zip-btn": "Archivo ZIP (comprimido físico)",
     "import-folder-btn": "Carpeta del sistema (directorio físico)",
-    "btn-import-project": "Importar Proyecto"
+    "btn-import-project": "Importar Proyecto",
+    "cp-table-id": "ID CP",
+    "cp-table-name": "Nombre del Caso de Prueba",
+    "cp-table-result": "Resultado Esperado",
+    "cp-table-type": "Tipo",
+    "cp-positive": "Positivo",
+    "cp-negative": "Negativo",
+    "cp-no-data": "No hay CPs parseados. Haz clic en 'Parsear Excel' primero.",
   }
 };
 
@@ -210,6 +226,7 @@ const state = {
   sprint: null,
   hus: [],
   selectedHu: null,
+  parsedTestCases: null,
   drawerType: null,
   drawerItem: null,
   mdContent: null,
@@ -391,6 +408,7 @@ async function renderProjects() {
   $('#btn-add-sprint').classList.toggle('hidden', !state.project);
   $('#btn-organize-insumos').classList.toggle('hidden', !state.project);
   $('#btn-generate-evidence').classList.toggle('hidden', !state.project);
+  $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
   makeSortable('dash-projects-list', 'project', (newOrder) => {
     localStorage.setItem('projectsOrder', JSON.stringify(newOrder));
   });
@@ -523,6 +541,7 @@ async function renderSprints() {
   });
 
   $('#btn-add-hu').classList.toggle('hidden', !state.sprint);
+  $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
   makeSortable('dash-sprints-list', 'sprint', (newOrder) => {
     localStorage.setItem('sprintsOrder_' + state.project, JSON.stringify(newOrder));
   });
@@ -711,6 +730,49 @@ async function showSprintDetails(project, s) {
 function showHuDetails(hu) {
   const t = translations[currentLang];
   $('#right-drawer-title').textContent = translations[currentLang]['col-hus'];
+
+  let cpTableHtml = '';
+  const parsedCps = state.parsedTestCases && state.parsedTestCases[hu.id];
+  if (parsedCps && parsedCps.length > 0) {
+    cpTableHtml = `
+      <div style="margin-top: 15px;">
+        <h5 style="font-size: 13px; color: var(--accent-color); margin: 0 0 8px 0;">
+          ${t['cp-table-name'].replace('Name', 'CPs')} (${parsedCps.length})
+        </h5>
+        <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+              <tr style="background: var(--bg-panel); position: sticky; top: 0;">
+                <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-id']}</th>
+                <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-name']}</th>
+                <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-type']}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${parsedCps.map(cp => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 5px 8px; color: var(--text-color); font-weight: 500;">${cp.id}</td>
+                  <td style="padding: 5px 8px; color: var(--text-color);">${cp.nombre || '-'}</td>
+                  <td style="padding: 5px 8px;">
+                    <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px;">
+                      ${cp.is_positive ? t['cp-positive'] : t['cp-negative']}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  } else if (state.parsedTestCases) {
+    cpTableHtml = `
+      <div style="margin-top: 15px; padding: 10px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; font-size: 12px; color: #8b949e;">
+        ${t['cp-no-data']}
+      </div>
+    `;
+  }
+
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${hu.id}: ${hu.name}</h4>
     <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
@@ -727,6 +789,7 @@ function showHuDetails(hu) {
         <span class="badge ${hu.hasAudio ? 'ok' : 'fail'}">${hu.hasAudio ? t['status-generated'] : t['status-missing']}</span>
       </div>
     </div>
+    ${cpTableHtml}
   `;
   
   $('#btn-start-flow').disabled = !hu.hasExcel;
@@ -944,6 +1007,29 @@ $('#btn-add-sprint').onclick = () => openModal(translations[currentLang]['modal-
 $('#btn-add-hu').onclick = () => openModal(translations[currentLang]['modal-new-hu'], 'Ej: HU-123_Login', async (val) => {
   await window.api.createHu({ project: state.project, sprint: state.sprint, huName: val });
   renderHus();
+});
+
+$('#btn-parse-excel').addEventListener('click', async () => {
+  if (!state.project || !state.sprint) return;
+  const t = translations[currentLang];
+  const confirmMsg = currentLang === 'es'
+    ? `Se leerán los archivos Excel de todas las HUs del sprint "${state.sprint}" y se extraerán los casos de prueba. ¿Continuar?`
+    : `Excel files from all HUs in sprint "${state.sprint}" will be read and test cases will be extracted. Continue?`;
+  openConfirmModal(t['btn-parse-excel'], confirmMsg, async () => {
+    const res = await window.api.parseExcel({ project: state.project, sprint: state.sprint });
+    if (res.success) {
+      state.parsedTestCases = res.data;
+      const totalCps = Object.values(res.data).reduce((sum, arr) => sum + arr.length, 0);
+      const totalHus = Object.keys(res.data).length;
+      const msg = currentLang === 'es'
+        ? `Excel parseado exitosamente.\n\nHUs con CPs: ${totalHus}\nTotal de casos de prueba: ${totalCps}`
+        : `Excel parsed successfully.\n\nHUs with CPs: ${totalHus}\nTotal test cases: ${totalCps}`;
+      showDarkAlert(t['btn-parse-excel'], msg);
+      if (state.selectedHu) showHuDetails(state.selectedHu);
+    } else {
+      alert('Error: ' + res.error);
+    }
+  });
 });
 
 $('#btn-organize-insumos').addEventListener('click', async () => {

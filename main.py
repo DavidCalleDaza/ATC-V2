@@ -231,6 +231,65 @@ def cmd_recorder(args):
     subprocess.run(["npm", "start"], cwd=str(recorder_dir))
 
 
+# ── Subcomando: parse-excel ────────────────────────────────────────────────────
+
+def cmd_parse_excel(args):
+    """Lee los Excels de todas las HUs de un sprint y retorna JSON con los CPs."""
+    import json
+    import sys
+    from io import StringIO
+    from src.data.excel_reader import read_hu_excel_with_details
+    from src.data.story_scanner import scan_hu_folders, find_hu_folder
+
+    # Redirigir logging a stderr para que stdout solo tenga el JSON
+    root_logger = logging.getLogger()
+    original_handlers = root_logger.handlers[:]
+    root_logger.handlers = [logging.StreamHandler(sys.stderr)]
+
+    try:
+        project = args.project
+        result = {}
+
+        if args.hu:
+            hu_folder = find_hu_folder(BASE_DIR, args.hu, project_name=project)
+            if not hu_folder:
+                print(json.dumps({}))
+                return
+            folders = [hu_folder]
+        elif args.sprint:
+            folders = scan_hu_folders(BASE_DIR, args.sprint, project_name=project)
+        else:
+            print(json.dumps({}))
+            return
+
+        for hu in folders:
+            if not hu.has_excel:
+                continue
+            try:
+                test_cases = read_hu_excel_with_details(hu.path)
+                result[hu.hu_id] = [
+                    {
+                        "id": tc.id,
+                        "nombre": tc.nombre,
+                        "resumen": tc.resumen,
+                        "precondiciones": tc.precondiciones,
+                        "pasos": tc.pasos,
+                        "resultado_esperado": tc.resultado_esperado,
+                        "contexto": tc.contexto,
+                        "hu_id": tc.hu_id,
+                        "hu_nombre": tc.hu_nombre,
+                        "is_positive": tc.is_positive,
+                    }
+                    for tc in test_cases
+                ]
+            except Exception as e:
+                logging.warning(f"Error leyendo Excel de {hu.hu_id}: {e}")
+
+        print(json.dumps(result, ensure_ascii=False))
+    finally:
+        root_logger.handlers = original_handlers
+
+
 # ── Parser principal ───────────────────────────────────────────────────────────
 
 def build_parser() -> argparse.ArgumentParser:
@@ -286,6 +345,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Lanza la aplicación de grabación de pantalla (Electron)"
     )
 
+    # parse-excel
+    pe = subparsers.add_parser(
+        "parse-excel",
+        help="Lee Excels de HUs y retorna JSON con casos de prueba"
+    )
+    pe.add_argument("--project", type=str, required=True, help="Nombre del proyecto")
+    pe_group = pe.add_mutually_exclusive_group()
+    pe_group.add_argument("--sprint", type=str, help="Sprint a procesar (ej: sprint-02)")
+    pe_group.add_argument("--hu", type=str, help="ID de HU específica")
+
     return parser
 
 
@@ -303,6 +372,7 @@ def main():
         "evidence-v2": cmd_evidence_v2,
         "create-suite": cmd_create_suite,
         "recorder": cmd_recorder,
+        "parse-excel": cmd_parse_excel,
     }
 
     cmd_func = commands.get(args.command)

@@ -497,6 +497,24 @@ ipcMain.handle('generate-evidence', async (_event, { project, sprint, huId }) =>
   }
 });
 
+// ── Parsear Excel (parse-excel) ────────────────────────────────────────────────
+
+ipcMain.handle('parse-excel', async (_event, { project, sprint, huId }) => {
+  try {
+    const args = ['parse-excel', '--project', project];
+    if (huId) {
+      args.push('--hu', huId);
+    } else if (sprint) {
+      args.push('--sprint', sprint);
+    }
+    const stdout = await runPythonCommand(args);
+    const data = JSON.parse(stdout);
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ── Handlers de Generación ────────────────────────────────────────────────────
 
 ipcMain.handle('generate-audio-guide', async (_event, { project, huId }) => {
