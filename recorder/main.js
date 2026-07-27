@@ -515,6 +515,47 @@ ipcMain.handle('parse-excel', async (_event, { project, sprint, huId }) => {
   }
 });
 
+// ── Persistencia de Casos de Prueba (test_cases.json) ─────────────────────────
+
+ipcMain.handle('save-test-cases', async (_event, { project, sprint, huName, data }) => {
+  try {
+    const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
+    if (!fs.existsSync(huDir)) {
+      return { success: false, error: `Carpeta no encontrada: ${huName}` };
+    }
+    const filePath = path.join(huDir, 'test_cases.json');
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('load-test-cases', async (_event, { project, sprint }) => {
+  try {
+    const sprintDir = path.join(BASE_DIR, 'projects', project, sprint);
+    if (!fs.existsSync(sprintDir)) return { success: true, data: {} };
+
+    const hus = fs.readdirSync(sprintDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')));
+
+    const result = {};
+    for (const hu of hus) {
+      const filePath = path.join(sprintDir, hu.name, 'test_cases.json');
+      if (fs.existsSync(filePath)) {
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const huId = hu.name.match(/HU-\d+/)?.[0] || hu.name;
+          result[huId] = JSON.parse(content);
+        } catch (e) { /* skip corrupted files */ }
+      }
+    }
+    return { success: true, data: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ── Handlers de Generación ────────────────────────────────────────────────────
 
 ipcMain.handle('generate-audio-guide', async (_event, { project, huId }) => {

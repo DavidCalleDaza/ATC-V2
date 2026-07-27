@@ -9,6 +9,7 @@ const translations = {
     "btn-new": "+ New",
     "col-sprints": "Sprints",
     "col-hus": "User Stories",
+    "col-cps": "Test Cases",
     "btn-new-hu": "+ New HU",
     "status-select-project": "Select a project...",
     "status-select-sprint": "Select a sprint...",
@@ -95,6 +96,9 @@ const translations = {
     "cp-positive": "Positive",
     "cp-negative": "Negative",
     "cp-no-data": "No test cases parsed. Click 'Parse Excel' first.",
+    "cp-no-hu": "Select a User Story to view its test cases.",
+    "cp-edit-title": "Edit Test Case",
+    "cp-delete-confirm": "Are you sure you want to delete test case \"{name}\"?",
     "cp-detail-back": "Back to list",
     "cp-detail-resumen": "Summary:",
     "cp-detail-precondiciones": "Preconditions:",
@@ -111,6 +115,7 @@ const translations = {
     "btn-new": "+ Nuevo",
     "col-sprints": "Sprints",
     "col-hus": "Historias de Usuario",
+    "col-cps": "Casos de Prueba",
     "btn-new-hu": "+ Nueva HU",
     "status-select-project": "Selecciona un proyecto...",
     "status-select-sprint": "Selecciona un sprint...",
@@ -198,6 +203,9 @@ const translations = {
     "cp-positive": "Positivo",
     "cp-negative": "Negativo",
     "cp-no-data": "No hay CPs parseados. Haz clic en 'Parsear Excel' primero.",
+    "cp-no-hu": "Selecciona una Historia de Usuario para ver sus casos de prueba.",
+    "cp-edit-title": "Editar Caso de Prueba",
+    "cp-delete-confirm": "¿Estás seguro de que deseas eliminar el caso de prueba \"{name}\"?",
     "cp-detail-back": "Volver a la lista",
     "cp-detail-resumen": "Resumen:",
     "cp-detail-precondiciones": "Precondiciones:",
@@ -238,6 +246,7 @@ const state = {
   sprint: null,
   hus: [],
   selectedHu: null,
+  selectedCp: null,
   parsedTestCases: null,
   drawerType: null,
   drawerItem: null,
@@ -545,9 +554,15 @@ async function renderSprints() {
     actionsDiv.appendChild(btnDelete);
     el.appendChild(actionsDiv);
 
-    el.onclick = () => {
-      state.sprint = s; state.selectedHu = null;
-      renderSprints(); renderHus();
+    el.onclick = async () => {
+      state.sprint = s; state.selectedHu = null; state.selectedCp = null;
+      const loadRes = await window.api.loadTestCases({ project: state.project, sprint: s });
+      if (loadRes.success && Object.keys(loadRes.data).length > 0) {
+        state.parsedTestCases = loadRes.data;
+      } else {
+        state.parsedTestCases = null;
+      }
+      renderSprints(); renderHus(); renderCps();
     };
     list.appendChild(el);
   });
@@ -682,7 +697,7 @@ async function renderHus() {
     actionsDiv.appendChild(btnDelete);
     el.appendChild(actionsDiv);
 
-    el.onclick = () => { state.selectedHu = hu; renderHus(); showHuDetails(hu); };
+    el.onclick = () => { state.selectedHu = hu; state.selectedCp = null; renderHus(); showHuDetails(hu); };
     list.appendChild(el);
     
     if (state.selectedHu?.id === hu.id) {
@@ -694,6 +709,156 @@ async function renderHus() {
   makeSortable('dash-hus-list', 'hu', (newOrder) => {
     localStorage.setItem('husOrder_' + state.project + '_' + state.sprint, JSON.stringify(newOrder));
   });
+}
+
+async function persistTestCases() {
+  if (!state.selectedHu || !state.parsedTestCases) return;
+  const cpData = state.parsedTestCases[state.selectedHu.id] || [];
+  await window.api.saveTestCases({
+    project: state.project,
+    sprint: state.sprint,
+    huName: state.selectedHu.name,
+    data: cpData
+  });
+}
+
+function renderCps() {
+  const t = translations[currentLang];
+  const list = $('#dash-cps-list');
+  list.innerHTML = '';
+
+  if (!state.selectedHu) {
+    list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${t['cp-no-hu']}</span>`;
+    return;
+  }
+
+  const parsedCps = state.parsedTestCases && state.parsedTestCases[state.selectedHu.id];
+  if (!parsedCps || parsedCps.length === 0) {
+    list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${state.parsedTestCases ? t['cp-no-data'] : t['cp-no-data']}</span>`;
+    return;
+  }
+
+  parsedCps.forEach((cp, idx) => {
+    const el = document.createElement('div');
+    el.className = `dash-item ${state.selectedCp && state.selectedCp.id === cp.id ? 'active' : ''}`;
+    el.dataset.cpIdx = idx;
+
+    const infoSpan = document.createElement('span');
+    infoSpan.style.cssText = 'display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;';
+    infoSpan.innerHTML = `<strong style="white-space: nowrap;">${cp.id}</strong>
+      <span style="font-size: 11px; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(cp.nombre || '').substring(0, 30)}</span>
+      <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px; white-space: nowrap;">${cp.is_positive ? t['cp-positive'] : t['cp-negative']}</span>`;
+    el.appendChild(infoSpan);
+
+    const btnView = document.createElement('button');
+    btnView.className = 'btn-icon view';
+    btnView.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    btnView.title = 'View Details';
+    btnView.onclick = (e) => {
+      e.stopPropagation();
+      state.selectedCp = cp;
+      showCpDetail(cp);
+      $('#right-drawer').classList.add('open');
+      renderCps();
+    };
+    el.appendChild(btnView);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'item-actions';
+    actionsDiv.style.display = 'flex';
+    actionsDiv.style.gap = '5px';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn-icon edit';
+    btnEdit.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>';
+    btnEdit.title = t['cp-edit-title'];
+    btnEdit.onclick = (e) => {
+      e.stopPropagation();
+      openCpEditModal(cp);
+    };
+
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-icon delete';
+    btnDelete.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+    btnDelete.title = 'Delete';
+    btnDelete.onclick = (e) => {
+      e.stopPropagation();
+      const confText = t['cp-delete-confirm'].replace('{name}', cp.id + ' - ' + (cp.nombre || ''));
+      openConfirmModal(cp.id, confText, async () => {
+        const husCps = state.parsedTestCases[state.selectedHu.id];
+        const cpIdx = husCps.findIndex(c => c.id === cp.id);
+        if (cpIdx !== -1) {
+          husCps.splice(cpIdx, 1);
+          state.selectedCp = null;
+          await persistTestCases();
+          renderCps();
+          $('#right-drawer').classList.remove('open');
+        }
+      });
+    };
+
+    actionsDiv.appendChild(btnEdit);
+    actionsDiv.appendChild(btnDelete);
+    el.appendChild(actionsDiv);
+
+    el.onclick = () => {
+      state.selectedCp = cp;
+      showCpDetail(cp);
+      $('#right-drawer').classList.add('open');
+      renderCps();
+    };
+
+    list.appendChild(el);
+  });
+}
+
+function openCpEditModal(cp) {
+  const t = translations[currentLang];
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width: 500px;">
+      <h4 style="margin: 0 0 15px; color: var(--accent-color);">${t['cp-edit-title']} — ${cp.id}</h4>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="font-size: 12px; color: var(--text-color);">${t['cp-table-name']}:
+          <input id="cp-edit-nombre" type="text" value="${(cp.nombre || '').replace(/"/g, '&quot;')}" style="width: 100%; padding: 6px 8px; margin-top: 4px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-size: 12px;">
+        </label>
+        <label style="font-size: 12px; color: var(--text-color);">${t['cp-detail-resumen']}
+          <textarea id="cp-edit-resumen" rows="2" style="width: 100%; padding: 6px 8px; margin-top: 4px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-size: 12px; resize: vertical;">${cp.resumen || ''}</textarea>
+        </label>
+        <label style="font-size: 12px; color: var(--text-color);">${t['cp-detail-precondiciones']}
+          <textarea id="cp-edit-precondiciones" rows="2" style="width: 100%; padding: 6px 8px; margin-top: 4px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-size: 12px; resize: vertical;">${cp.precondiciones || ''}</textarea>
+        </label>
+        <label style="font-size: 12px; color: var(--text-color);">${t['cp-detail-pasos']}
+          <textarea id="cp-edit-pasos" rows="3" style="width: 100%; padding: 6px 8px; margin-top: 4px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-size: 12px; resize: vertical;">${cp.pasos || ''}</textarea>
+        </label>
+        <label style="font-size: 12px; color: var(--text-color);">${t['cp-detail-resultado']}
+          <textarea id="cp-edit-resultado" rows="2" style="width: 100%; padding: 6px 8px; margin-top: 4px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-color); font-size: 12px; resize: vertical;">${cp.resultado_esperado || ''}</textarea>
+        </label>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+        <button class="btn btn-secondary" id="cp-edit-cancel">${t['btn-back']}</button>
+        <button class="btn btn-primary" id="cp-edit-save">Save</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#cp-edit-cancel').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#cp-edit-save').onclick = async () => {
+    cp.nombre = overlay.querySelector('#cp-edit-nombre').value;
+    cp.resumen = overlay.querySelector('#cp-edit-resumen').value;
+    cp.precondiciones = overlay.querySelector('#cp-edit-precondiciones').value;
+    cp.pasos = overlay.querySelector('#cp-edit-pasos').value;
+    cp.resultado_esperado = overlay.querySelector('#cp-edit-resultado').value;
+    overlay.remove();
+    await persistTestCases();
+    renderCps();
+    if (state.selectedCp && state.selectedCp.id === cp.id) {
+      showCpDetail(cp);
+    }
+  };
 }
 
 async function showProjectDetails(p) {
@@ -739,7 +904,7 @@ async function showSprintDetails(project, s) {
   `;
 }
 
-function showCpDetail(cp, hu) {
+function showCpDetail(cp) {
   const t = translations[currentLang];
   const field = (label, value) => `
     <div style="margin-bottom: 10px;">
@@ -769,7 +934,11 @@ function showCpDetail(cp, hu) {
     </div>
   `;
 
-  $('#btn-cp-detail-back').onclick = () => showHuDetails(hu);
+  $('#btn-cp-detail-back').onclick = () => {
+    state.selectedCp = null;
+    $('#right-drawer').classList.remove('open');
+    renderCps();
+  };
 }
 
 function showHuDetails(hu) {
@@ -849,10 +1018,15 @@ function showHuDetails(hu) {
       row.addEventListener('mouseleave', () => { row.style.background = ''; });
       row.addEventListener('click', () => {
         const idx = parseInt(row.dataset.cpIdx);
-        if (parsedCpsDetail[idx]) showCpDetail(parsedCpsDetail[idx], hu);
+        if (parsedCpsDetail[idx]) {
+          state.selectedCp = parsedCpsDetail[idx];
+          showCpDetail(parsedCpsDetail[idx]);
+        }
       });
     });
   }
+
+  renderCps();
 }
 
 // Subida de archivos
@@ -1079,9 +1253,21 @@ $('#btn-parse-excel').addEventListener('click', async () => {
       state.parsedTestCases = res.data;
       const totalCps = Object.values(res.data).reduce((sum, arr) => sum + arr.length, 0);
       const totalHus = Object.keys(res.data).length;
+
+      const hus = await window.api.getHus({ project: state.project, sprint: state.sprint });
+      for (const hu of hus) {
+        const cpData = res.data[hu.id] || [];
+        await window.api.saveTestCases({
+          project: state.project,
+          sprint: state.sprint,
+          huName: hu.name,
+          data: cpData
+        });
+      }
+
       const msg = currentLang === 'es'
-        ? `Excel parseado exitosamente.\n\nHUs con CPs: ${totalHus}\nTotal de casos de prueba: ${totalCps}`
-        : `Excel parsed successfully.\n\nHUs with CPs: ${totalHus}\nTotal test cases: ${totalCps}`;
+        ? `Excel parseado y guardado exitosamente.\n\nHUs con CPs: ${totalHus}\nTotal de casos de prueba: ${totalCps}`
+        : `Excel parsed and saved successfully.\n\nHUs with CPs: ${totalHus}\nTotal test cases: ${totalCps}`;
       showDarkAlert(t['btn-parse-excel'], msg);
       if (state.selectedHu) showHuDetails(state.selectedHu);
     } else {

@@ -36,4 +36,6 @@ contextBridge.exposeInMainWorld('api', {
   organizeInsumos: (data) => ipcRenderer.invoke('organize-insumos', data),
   generateEvidence: (data) => ipcRenderer.invoke('generate-evidence', data),
   parseExcel: (data) => ipcRenderer.invoke('parse-excel', data),
+  saveTestCases: (data) => ipcRenderer.invoke('save-test-cases', data),
+  loadTestCases: (data) => ipcRenderer.invoke('load-test-cases', data),
 });
