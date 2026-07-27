@@ -103,14 +103,39 @@ ipcMain.handle('get-hus', async (_event, { project, sprint }) => {
       const files = fs.readdirSync(huDir);
       const hasExcel = files.some(f => f.endsWith('.xlsx') && !f.startsWith('~$'));
       const hasWord = files.some(f => f.endsWith('.docx') && !f.startsWith('~$'));
+      const hasAudio = fs.existsSync(wavPath) && fs.existsSync(mdPath);
+
+      const evidenceFiles = files.filter(f =>
+        /^exploratory_.*\.mp4$/.test(f) || /^finding_.*\.(png|json)$/.test(f)
+      );
+
+      let cpCount = 0, positiveCount = 0, negativeCount = 0;
+      const tcPath = path.join(huDir, 'test_cases.json');
+      if (fs.existsSync(tcPath)) {
+        try {
+          const tcs = JSON.parse(fs.readFileSync(tcPath, 'utf-8'));
+          cpCount = tcs.length;
+          positiveCount = tcs.filter(tc => tc.is_positive).length;
+          negativeCount = tcs.filter(tc => !tc.is_positive).length;
+        } catch (e) { /* skip corrupted */ }
+      }
+
+      let lastModified = '';
+      try { lastModified = fs.statSync(huDir).mtime.toISOString(); } catch (e) {}
 
       return {
         id,
         name: e.name,
         path: huDir,
-        hasAudio: fs.existsSync(wavPath) && fs.existsSync(mdPath),
+        hasAudio,
         hasExcel,
-        hasWord
+        hasWord,
+        fileCount: files.length,
+        evidenceCount: evidenceFiles.length,
+        lastModified,
+        cpCount,
+        positiveCount,
+        negativeCount
       };
     })
     .sort((a, b) => a.id.localeCompare(b.id));
@@ -1297,6 +1322,155 @@ ipcMain.handle('save-recording', async (_event, { project, sprint, huName, huId,
     return { success: false, error: err.message };
   }
 });
+// ── Detail Panel Handlers ──────────────────────────────────────────────────────
+
+ipcMain.handle('load-trazabilidad', async () => {
+  const mainTraz = path.join(BASE_DIR, 'config', 'trazabilidad.json');
+  if (!fs.existsSync(mainTraz)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(mainTraz, 'utf-8'));
+  } catch (e) {
+    return {};
+  }
+});
+
+ipcMain.handle('get-sprint-summary', async (_event, { project, sprint }) => {
+  const sprintDir = path.join(BASE_DIR, 'projects', project, sprint);
+  if (!fs.existsSync(sprintDir)) return null;
+
+  const hus = await (async () => {
+    const { default: mod } = {};
+    const husResult = [];
+    const entries = fs.readdirSync(sprintDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')));
+
+    let lastMod = 0;
+    for (const e of entries) {
+      const id = e.name.match(/HU-\d+/)?.[0] || e.name;
+      const huDir = path.join(sprintDir, e.name);
+      const wavPath = path.join(huDir, `${id}_guide.wav`);
+      const mdPath = path.join(huDir, `${id}_guide.md`);
+      const files = fs.readdirSync(huDir);
+      const hasExcel = files.some(f => f.endsWith('.xlsx') && !f.startsWith('~$'));
+      const hasWord = files.some(f => f.endsWith('.docx') && !f.startsWith('~$'));
+      const hasAudio = fs.existsSync(wavPath) && fs.existsSync(mdPath);
+
+      let cpCount = 0, positiveCount = 0, negativeCount = 0;
+      const tcPath = path.join(huDir, 'test_cases.json');
+      if (fs.existsSync(tcPath)) {
+        try {
+          const tcs = JSON.parse(fs.readFileSync(tcPath, 'utf-8'));
+          cpCount = tcs.length;
+          positiveCount = tcs.filter(tc => tc.is_positive).length;
+          negativeCount = tcs.filter(tc => !tc.is_positive).length;
+        } catch (e) { /* skip */ }
+      }
+
+      let huMod = 0;
+      try { huMod = fs.statSync(huDir).mtimeMs; } catch (e) {}
+      if (huMod > lastMod) lastMod = huMod;
+
+      husResult.push({ id, name: e.name, hasExcel, hasWord, hasAudio, cpCount, positiveCount, negativeCount });
+    }
+
+    return { hus: husResult, lastModified: lastMod };
+  })();
+
+  const allCps = hus.hus.reduce((s, h) => s + h.cpCount, 0);
+  const allPos = hus.hus.reduce((s, h) => s + h.positiveCount, 0);
+  const allNeg = hus.hus.reduce((s, h) => s + h.negativeCount, 0);
+  const audioGuides = hus.hus.filter(h => h.hasAudio).length;
+  const wordEvidence = hus.hus.filter(h => h.hasWord).length;
+  const excelFiles = hus.hus.filter(h => h.hasExcel).length;
+
+  return {
+    project,
+    sprint,
+    totalHus: hus.hus.length,
+    totalCps: allCps,
+    positiveCps: allPos,
+    negativeCps: allNeg,
+    audioGuides,
+    wordEvidence,
+    excelFiles,
+    lastModified: hus.lastModified ? new Date(hus.lastModified).toISOString() : '',
+    hus: hus.hus.sort((a, b) => a.id.localeCompare(b.id))
+  };
+});
+
+ipcMain.handle('get-project-details', async (_event, project) => {
+  const projectDir = path.join(BASE_DIR, 'projects', project);
+  if (!fs.existsSync(projectDir)) return null;
+
+  const sprintNames = fs.readdirSync(projectDir, { withFileTypes: true })
+    .filter(e => e.isDirectory() && e.name.toLowerCase().startsWith('sprint-'))
+    .map(e => e.name)
+    .sort();
+
+  let totalHus = 0, totalCps = 0, audioGuides = 0, wordEvidence = 0, excelFiles = 0;
+  let lastMod = 0;
+  const sprints = [];
+
+  for (const sprint of sprintNames) {
+    const sprintDir = path.join(projectDir, sprint);
+    const entries = fs.readdirSync(sprintDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')));
+
+    let sprintCps = 0, sprintAudio = 0, sprintWord = 0;
+    for (const e of entries) {
+      const id = e.name.match(/HU-\d+/)?.[0] || e.name;
+      const huDir = path.join(sprintDir, e.name);
+      const wavPath = path.join(huDir, `${id}_guide.wav`);
+      const mdPath = path.join(huDir, `${id}_guide.md`);
+      const files = fs.readdirSync(huDir);
+      const hasExcel = files.some(f => f.endsWith('.xlsx') && !f.startsWith('~$'));
+      const hasWord = files.some(f => f.endsWith('.docx') && !f.startsWith('~$'));
+      const hasAudio = fs.existsSync(wavPath) && fs.existsSync(mdPath);
+
+      let cpCount = 0;
+      const tcPath = path.join(huDir, 'test_cases.json');
+      if (fs.existsSync(tcPath)) {
+        try { cpCount = JSON.parse(fs.readFileSync(tcPath, 'utf-8')).length; } catch (e) { /* skip */ }
+      }
+
+      sprintCps += cpCount;
+      if (hasAudio) sprintAudio++;
+      if (hasWord) sprintWord++;
+      if (hasExcel) excelFiles++;
+
+      try {
+        const m = fs.statSync(huDir).mtimeMs;
+        if (m > lastMod) lastMod = m;
+      } catch (e) {}
+    }
+
+    totalHus += entries.length;
+    totalCps += sprintCps;
+    audioGuides += sprintAudio;
+    wordEvidence += sprintWord;
+
+    sprints.push({
+      name: sprint,
+      huCount: entries.length,
+      cpCount: sprintCps,
+      audioGuides: sprintAudio,
+      wordEvidence: sprintWord
+    });
+  }
+
+  return {
+    project,
+    totalSprints: sprintNames.length,
+    totalHus,
+    totalCps,
+    audioGuides,
+    wordEvidence,
+    excelFiles,
+    lastModified: lastMod ? new Date(lastMod).toISOString() : '',
+    sprints
+  };
+});
+
 // ── App Lifecycle ─────────────────────────────────────────────────────────────
 
 let appWin = null;

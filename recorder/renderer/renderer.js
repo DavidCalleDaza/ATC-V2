@@ -105,6 +105,39 @@ const translations = {
     "cp-detail-pasos": "Steps:",
     "cp-detail-resultado": "Expected Result:",
     "cp-detail-contexto": "Context:",
+    "detail-summary": "Summary",
+    "detail-last-modified": "Last Modified",
+    "detail-total-sprints": "Total Sprints",
+    "detail-total-hus": "Total User Stories",
+    "detail-total-cps": "Total Test Cases",
+    "detail-positive-cps": "Positive",
+    "detail-negative-cps": "Negative",
+    "detail-audio-guides": "Audio Guides",
+    "detail-word-evidence": "Word Evidence",
+    "detail-excel-files": "Excel Files",
+    "detail-sprint-breakdown": "Sprint Breakdown",
+    "detail-hu-list": "User Stories",
+    "detail-cps": "CPs",
+    "detail-audio": "Audio",
+    "detail-word": "Word",
+    "detail-folder-path": "Folder Path",
+    "detail-file-count": "Total Files",
+    "detail-evidence-count": "Evidence Files",
+    "detail-trazabilidad": "Traceability",
+    "detail-traced": "mapped",
+    "detail-excel-size": "Excel Size",
+    "detail-word-size": "Word Size",
+    "detail-audio-duration": "Audio Duration",
+    "detail-audio-size": "Audio Size",
+    "detail-insumos": "Supplies Folder",
+    "detail-evidence-videos": "Videos",
+    "detail-evidence-screenshots": "Screenshots",
+    "detail-evidence-findings": "Findings",
+    "detail-parent-hu": "Parent HU",
+    "detail-linked-files": "Linked Files",
+    "detail-trazabilidad-video": "Video Timestamps",
+    "detail-no-trazabilidad": "No traceability recorded",
+    "detail-na": "N/A",
   },
   es: {
     "app-title": "Automatización de casos de prueba",
@@ -212,6 +245,39 @@ const translations = {
     "cp-detail-pasos": "Pasos:",
     "cp-detail-resultado": "Resultado Esperado:",
     "cp-detail-contexto": "Contexto:",
+    "detail-summary": "Resumen",
+    "detail-last-modified": "Última Modificación",
+    "detail-total-sprints": "Total Sprints",
+    "detail-total-hus": "Total Historias de Usuario",
+    "detail-total-cps": "Total Casos de Prueba",
+    "detail-positive-cps": "Positivos",
+    "detail-negative-cps": "Negativos",
+    "detail-audio-guides": "Audio-Guías",
+    "detail-word-evidence": "Evidencia Word",
+    "detail-excel-files": "Archivos Excel",
+    "detail-sprint-breakdown": "Desglose por Sprint",
+    "detail-hu-list": "Historias de Usuario",
+    "detail-cps": "CPs",
+    "detail-audio": "Audio",
+    "detail-word": "Word",
+    "detail-folder-path": "Ruta de Carpeta",
+    "detail-file-count": "Total Archivos",
+    "detail-evidence-count": "Archivos de Evidencia",
+    "detail-trazabilidad": "Trazabilidad",
+    "detail-traced": "mapeados",
+    "detail-excel-size": "Tamaño Excel",
+    "detail-word-size": "Tamaño Word",
+    "detail-audio-duration": "Duración Audio",
+    "detail-audio-size": "Tamaño Audio",
+    "detail-insumos": "Carpeta de Insumos",
+    "detail-evidence-videos": "Videos",
+    "detail-evidence-screenshots": "Capturas",
+    "detail-evidence-findings": "Hallazgos",
+    "detail-parent-hu": "HU Padre",
+    "detail-linked-files": "Archivos Vinculados",
+    "detail-trazabilidad-video": "Marcas de Video",
+    "detail-no-trazabilidad": "Sin trazabilidad registrada",
+    "detail-na": "N/D",
   }
 };
 
@@ -895,49 +961,130 @@ function openCpEditModal(cp) {
 }
 
 async function showProjectDetails(p) {
-  const sprints = await window.api.getSprints(p);
-  let totalHus = 0;
-  for (const s of sprints) {
-    const hus = await window.api.getHus({ project: p, sprint: s });
-    totalHus += hus.length;
-  }
-  
-  $('#right-drawer-title').textContent = translations[currentLang]['col-projects'];
+  const t = translations[currentLang];
+  const details = await window.api.getProjectDetails(p);
+  if (!details) return;
+
+  const row = (label, value, badgeClass) => `
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+      <span style="font-weight: 500; font-size: 12px; color: var(--text-color);">${label}</span>
+      ${badgeClass ? `<span class="badge ${badgeClass}">${value}</span>` : `<span style="font-size: 12px; color: var(--text-color);">${value}</span>`}
+    </div>`;
+
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }) : t['detail-na'];
+
+  const sprintRows = details.sprints.map(s => `
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 5px 8px; font-size: 11px; color: var(--text-color); font-weight: 500;">${s.name}</td>
+      <td style="padding: 5px 8px; font-size: 11px; color: var(--text-color); text-align: center;">${s.huCount}</td>
+      <td style="padding: 5px 8px; font-size: 11px; color: var(--text-color); text-align: center;">${s.cpCount}</td>
+      <td style="padding: 5px 8px; font-size: 11px; text-align: center;">
+        <span class="badge ${s.audioGuides === s.huCount ? 'ok' : s.audioGuides > 0 ? 'warn' : 'fail'}" style="font-size: 9px; padding: 1px 4px;">${s.audioGuides}/${s.huCount}</span>
+      </td>
+      <td style="padding: 5px 8px; font-size: 11px; text-align: center;">
+        <span class="badge ${s.wordEvidence === s.huCount ? 'ok' : s.wordEvidence > 0 ? 'warn' : 'fail'}" style="font-size: 9px; padding: 1px 4px;">${s.wordEvidence}/${s.huCount}</span>
+      </td>
+    </tr>
+  `).join('');
+
+  $('#right-drawer-title').textContent = t['col-projects'];
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${p}</h4>
-    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total Sprints:</span>
-        <span class="badge ok">${sprints.length}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total User Stories:</span>
-        <span class="badge ok">${totalHus}</span>
-      </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
+      ${row(t['detail-total-sprints'], details.totalSprints, 'ok')}
+      ${row(t['detail-total-hus'], details.totalHus, 'ok')}
+      ${row(t['detail-total-cps'], details.totalCps, 'ok')}
+      ${row(t['detail-audio-guides'], `${details.audioGuides}/${details.totalHus}`, details.audioGuides === details.totalHus ? 'ok' : details.audioGuides > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-word-evidence'], `${details.wordEvidence}/${details.totalHus}`, details.wordEvidence === details.totalHus ? 'ok' : details.wordEvidence > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-excel-files'], `${details.excelFiles}/${details.totalHus}`, details.excelFiles === details.totalHus ? 'ok' : details.excelFiles > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-last-modified'], fmtDate(details.lastModified))}
     </div>
+    ${details.sprints.length > 0 ? `
+    <div style="margin-top: 15px;">
+      <h5 style="font-size: 13px; color: var(--accent-color); margin: 0 0 8px 0;">${t['detail-sprint-breakdown']}</h5>
+      <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <thead>
+            <tr style="background: var(--bg-panel); position: sticky; top: 0;">
+              <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['col-sprints']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-hu-list']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-cps']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-audio']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-word']}</th>
+            </tr>
+          </thead>
+          <tbody>${sprintRows}</tbody>
+        </table>
+      </div>
+    </div>` : ''}
   `;
 }
 
 async function showSprintDetails(project, s) {
-  const hus = await window.api.getHus({ project, sprint: s });
-  
-  $('#right-drawer-title').textContent = translations[currentLang]['col-sprints'];
+  const t = translations[currentLang];
+  const summary = await window.api.getSprintSummary(project, s);
+  if (!summary) return;
+
+  const row = (label, value, badgeClass) => `
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+      <span style="font-weight: 500; font-size: 12px; color: var(--text-color);">${label}</span>
+      ${badgeClass ? `<span class="badge ${badgeClass}">${value}</span>` : `<span style="font-size: 12px; color: var(--text-color);">${value}</span>`}
+    </div>`;
+
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }) : t['detail-na'];
+
+  const huRows = summary.hus.map(hu => `
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 5px 8px; font-size: 11px; color: var(--text-color); font-weight: 500;">${hu.id}</td>
+      <td style="padding: 5px 8px; font-size: 11px; color: var(--text-color); text-align: center;">${hu.cpCount}</td>
+      <td style="padding: 5px 8px; font-size: 11px; text-align: center;">
+        <span class="badge ${hu.hasExcel ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 4px;">${hu.hasExcel ? '✓' : '✗'}</span>
+      </td>
+      <td style="padding: 5px 8px; font-size: 11px; text-align: center;">
+        <span class="badge ${hu.hasWord ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 4px;">${hu.hasWord ? '✓' : '✗'}</span>
+      </td>
+      <td style="padding: 5px 8px; font-size: 11px; text-align: center;">
+        <span class="badge ${hu.hasAudio ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 4px;">${hu.hasAudio ? '✓' : '✗'}</span>
+      </td>
+    </tr>
+  `).join('');
+
+  $('#right-drawer-title').textContent = t['col-sprints'];
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${s}</h4>
-    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Project:</span>
-        <span style="font-size: 13px;">${project}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">Total User Stories:</span>
-        <span class="badge ok">${hus.length}</span>
-      </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
+      ${row(t['exp-project'], project)}
+      ${row(t['detail-total-hus'], summary.totalHus, 'ok')}
+      ${row(t['detail-total-cps'], summary.totalCps, 'ok')}
+      ${row(t['detail-positive-cps'], summary.positiveCps, 'ok')}
+      ${row(t['detail-negative-cps'], summary.negativeCps, summary.negativeCps > 0 ? 'fail' : 'ok')}
+      ${row(t['detail-audio-guides'], `${summary.audioGuides}/${summary.totalHus}`, summary.audioGuides === summary.totalHus ? 'ok' : summary.audioGuides > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-word-evidence'], `${summary.wordEvidence}/${summary.totalHus}`, summary.wordEvidence === summary.totalHus ? 'ok' : summary.wordEvidence > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-excel-files'], `${summary.excelFiles}/${summary.totalHus}`, summary.excelFiles === summary.totalHus ? 'ok' : summary.excelFiles > 0 ? 'warn' : 'fail')}
+      ${row(t['detail-last-modified'], fmtDate(summary.lastModified))}
     </div>
+    ${summary.hus.length > 0 ? `
+    <div style="margin-top: 15px;">
+      <h5 style="font-size: 13px; color: var(--accent-color); margin: 0 0 8px 0;">${t['detail-hu-list']} (${summary.hus.length})</h5>
+      <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <thead>
+            <tr style="background: var(--bg-panel); position: sticky; top: 0;">
+              <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">HU</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-cps']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-excel-files']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-word']}</th>
+              <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['detail-audio']}</th>
+            </tr>
+          </thead>
+          <tbody>${huRows}</tbody>
+        </table>
+      </div>
+    </div>` : ''}
   `;
 }
 
-function showCpDetail(cp) {
+async function showCpDetail(cp) {
   const t = translations[currentLang];
   const field = (label, value) => `
     <div style="margin-bottom: 10px;">
@@ -946,8 +1093,29 @@ function showCpDetail(cp) {
     </div>
   `;
 
+  const parentHu = cp.hu_id || (state.selectedHu ? state.selectedHu.id : '');
+
+  function fmtTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  let trazabilidad = {};
+  try { trazabilidad = await window.api.loadTrazabilidad(); } catch (e) {}
+  const traced = trazabilidad[parentHu] && trazabilidad[parentHu][cp.id];
+  const trazRange = traced ? `${fmtTime(traced[0])} → ${fmtTime(traced[1])}` : null;
+
+  const linkedFiles = [];
+  if (state.selectedHu) {
+    const hu = state.selectedHu;
+    if (hu.hasExcel) linkedFiles.push({ type: 'Excel', name: hu.name.match(/\.xlsx$/) ? hu.name : `${hu.id}_design.xlsx`, icon: '📊' });
+    if (hu.hasWord) linkedFiles.push({ type: 'Word', name: `${cp.id}_evidence.docx`, icon: '📄' });
+    if (hu.hasAudio) linkedFiles.push({ type: 'Audio Guide', name: `${hu.id}_guide.wav`, icon: '🔊' });
+  }
+
   $('#right-drawer-content').innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
       <button id="btn-cp-detail-back" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; min-width: auto;">
         ← ${t['cp-detail-back']}
       </button>
@@ -955,6 +1123,7 @@ function showCpDetail(cp) {
         ${cp.is_positive ? t['cp-positive'] : t['cp-negative']}
       </span>
     </div>
+    ${parentHu ? `<div style="font-size: 11px; color: #8b949e; margin-bottom: 6px;">${t['detail-parent-hu']}: <span style="color: var(--accent-color);">${parentHu}</span></div>` : ''}
     <h4 style="color: #fff; font-size: 14px; word-break: break-all; margin-bottom: 12px;">
       <span style="color: var(--accent-color); font-weight: 700;">${cp.id}</span> — ${cp.nombre || ''}
     </h4>
@@ -965,6 +1134,28 @@ function showCpDetail(cp) {
       ${field(t['cp-detail-pasos'], cp.pasos)}
       ${field(t['cp-detail-resultado'], cp.resultado_esperado)}
     </div>
+
+    ${linkedFiles.length > 0 ? `
+    <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 12px;">
+      <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 8px 0;">${t['detail-linked-files']}</h5>
+      ${linkedFiles.map(f => `
+        <div style="display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 11px; color: var(--text-color); border-bottom: 1px solid var(--border-color);">
+          <span>${f.icon}</span>
+          <span style="font-weight: 500;">${f.type}:</span>
+          <span style="color: #8b949e; word-break: break-all;">${f.name}</span>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 12px;">
+      <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 8px 0;">${t['detail-trazabilidad']}</h5>
+      ${trazRange ? `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; color: var(--text-color);">${t['detail-trazabilidad-video']}</span>
+          <span class="badge ok" style="font-size: 10px;">${trazRange}</span>
+        </div>
+      ` : `<div style="font-size: 12px; color: #8b949e;">${t['detail-no-trazabilidad']}</div>`}
+    </div>
   `;
 
   $('#btn-cp-detail-back').onclick = () => {
@@ -974,17 +1165,59 @@ function showCpDetail(cp) {
   };
 }
 
-function showHuDetails(hu) {
+async function showHuDetails(hu) {
   const t = translations[currentLang];
-  $('#right-drawer-title').textContent = translations[currentLang]['col-hus'];
+  $('#right-drawer-title').textContent = t['col-hus'];
+
+  const parsedCps = state.parsedTestCases && state.parsedTestCases[hu.id];
+
+  let evidenceData = { grouped: [] };
+  try { evidenceData = await window.api.listHuEvidence({ project: state.project, sprint: state.sprint, huName: hu.name }); } catch (e) {}
+
+  let trazabilidad = {};
+  try { trazabilidad = await window.api.loadTrazabilidad(); } catch (e) {}
+  const tracedCps = trazabilidad[hu.id] ? Object.keys(trazabilidad[hu.id]).length : 0;
+  const totalCpsFromHu = hu.cpCount || (parsedCps ? parsedCps.length : 0);
+
+  const videos = evidenceData.grouped ? evidenceData.grouped.filter(g => g.video).length : 0;
+  const screenshots = evidenceData.grouped ? evidenceData.grouped.filter(g => g.screenshot).length : 0;
+  const findings = evidenceData.grouped ? evidenceData.grouped.filter(g => g.meta).length : 0;
+
+  const row = (label, value, badgeClass) => `
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+      <span style="font-weight: 500; font-size: 12px; color: var(--text-color);">${label}</span>
+      ${badgeClass ? `<span class="badge ${badgeClass}">${value}</span>` : `<span style="font-size: 12px; color: var(--text-color); word-break: break-all; text-align: right; max-width: 55%;">${value}</span>`}
+    </div>`;
+
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }) : t['detail-na'];
+
+  const shortPath = hu.path ? hu.path.replace(/\\/g, '/').split('/').slice(-3).join('/') : '';
 
   let cpTableHtml = '';
-  const parsedCps = state.parsedTestCases && state.parsedTestCases[hu.id];
   if (parsedCps && parsedCps.length > 0) {
+    const cpRows = parsedCps.map((cp, idx) => {
+      const traced = trazabilidad[hu.id] && trazabilidad[hu.id][cp.id];
+      return `
+        <tr data-cp-idx="${idx}" style="border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s;">
+          <td style="padding: 5px 8px; color: var(--text-color); font-weight: 500;">${cp.id}</td>
+          <td style="padding: 5px 8px; color: var(--text-color);">${cp.nombre || '-'}</td>
+          <td style="padding: 5px 8px;">
+            <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px;">
+              ${cp.is_positive ? t['cp-positive'] : t['cp-negative']}
+            </span>
+          </td>
+          <td style="padding: 5px 8px; text-align: center;">
+            <span class="badge ${traced ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px;">
+              ${traced ? '✓' : '✗'}
+            </span>
+          </td>
+        </tr>`;
+    }).join('');
+
     cpTableHtml = `
       <div style="margin-top: 15px;">
         <h5 style="font-size: 13px; color: var(--accent-color); margin: 0 0 8px 0;">
-          ${t['cp-table-name'].replace('Name', 'CPs')} (${parsedCps.length})
+          ${t['detail-cps']} (${parsedCps.length})
         </h5>
         <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -993,21 +1226,10 @@ function showHuDetails(hu) {
                 <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-id']}</th>
                 <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-name']}</th>
                 <th style="padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-color);">${t['cp-table-type']}</th>
+                <th style="padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border-color); color: var(--text-color);">Traz.</th>
               </tr>
             </thead>
-            <tbody>
-              ${parsedCps.map((cp, idx) => `
-                <tr data-cp-idx="${idx}" style="border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s;">
-                  <td style="padding: 5px 8px; color: var(--text-color); font-weight: 500;">${cp.id}</td>
-                  <td style="padding: 5px 8px; color: var(--text-color);">${cp.nombre || '-'}</td>
-                  <td style="padding: 5px 8px;">
-                    <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px;">
-                      ${cp.is_positive ? t['cp-positive'] : t['cp-negative']}
-                    </span>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
+            <tbody>${cpRows}</tbody>
           </table>
         </div>
       </div>
@@ -1021,21 +1243,35 @@ function showHuDetails(hu) {
   }
 
   $('#right-drawer-content').innerHTML = `
-    <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${hu.id}: ${hu.name}</h4>
-    <div style="display: flex; flex-direction: column; gap: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-excel-label']}</span>
-        <span class="badge ${hu.hasExcel ? 'ok' : 'fail'}">${hu.hasExcel ? t['status-found'] : t['status-missing']}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-word-label']}</span>
-        <span class="badge ${hu.hasWord ? 'ok' : 'fail'}">${hu.hasWord ? t['status-found'] : t['status-missing']}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
-        <span style="font-weight: 500; font-size: 13px; color: var(--text-color);">${t['status-audio-label']}</span>
-        <span class="badge ${hu.hasAudio ? 'ok' : 'fail'}">${hu.hasAudio ? t['status-generated'] : t['status-missing']}</span>
-      </div>
+    <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 6px;">${hu.id}: ${hu.name}</h4>
+    ${shortPath ? `<div style="font-size: 10px; color: #8b949e; margin-bottom: 10px; word-break: break-all;">📁 ${shortPath}</div>` : ''}
+
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
+      <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 4px 0;">${t['detail-summary']}</h5>
+      ${row(t['status-excel-label'], hu.hasExcel ? t['status-found'] : t['status-missing'], hu.hasExcel ? 'ok' : 'fail')}
+      ${row(t['status-word-label'], hu.hasWord ? t['status-found'] : t['status-missing'], hu.hasWord ? 'ok' : 'fail')}
+      ${row(t['status-audio-label'], hu.hasAudio ? t['status-generated'] : t['status-missing'], hu.hasAudio ? 'ok' : 'fail')}
+      ${row(t['detail-file-count'], hu.fileCount || '-')}
+      ${row(t['detail-evidence-count'], hu.evidenceCount || '0')}
+      ${hu.lastModified ? row(t['detail-last-modified'], fmtDate(hu.lastModified)) : ''}
     </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 12px;">
+      <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 4px 0;">${t['detail-total-cps']}</h5>
+      ${row(t['detail-total-cps'], totalCpsFromHu, 'ok')}
+      ${row(t['detail-positive-cps'], hu.positiveCount || 0, 'ok')}
+      ${row(t['detail-negative-cps'], hu.negativeCount || 0, (hu.negativeCount || 0) > 0 ? 'fail' : 'ok')}
+      ${row(t['detail-trazabilidad'], `${tracedCps}/${totalCpsFromHu} ${t['detail-traced']}`, tracedCps === totalCpsFromHu && totalCpsFromHu > 0 ? 'ok' : tracedCps > 0 ? 'warn' : 'fail')}
+    </div>
+
+    ${(videos > 0 || screenshots > 0 || findings > 0) ? `
+    <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 12px;">
+      <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 4px 0;">${t['detail-evidence-count']}</h5>
+      ${row(t['detail-evidence-videos'], videos, videos > 0 ? 'ok' : 'fail')}
+      ${row(t['detail-evidence-screenshots'], screenshots, screenshots > 0 ? 'ok' : 'fail')}
+      ${row(t['detail-evidence-findings'], findings, findings > 0 ? 'ok' : 'fail')}
+    </div>` : ''}
+
     ${cpTableHtml}
   `;
   
@@ -1117,6 +1353,20 @@ $('#btn-hu-details-close').onclick = () => {
   renderSprints();
   renderHus();
 };
+
+// Click on compact column labels (Projects/Sprints) closes the drawer
+$('.dashboard-grid').addEventListener('click', (e) => {
+  const h3 = e.target.closest('.dash-col-header h3');
+  if (!h3) return;
+  const grid = $('.dashboard-grid');
+  if (!grid || !grid.classList.contains('drawer-open')) return;
+  closeDrawer();
+  state.drawerType = null;
+  state.drawerItem = null;
+  renderProjects();
+  renderSprints();
+  renderHus();
+});
 
 // Modales genéricos
 const modal = $('#modal-overlay');
