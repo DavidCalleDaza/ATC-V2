@@ -64,6 +64,16 @@
         </div>
       </header>
 
+      <!-- View Tabs: Dashboard / Explorer Testing -->
+      <div id="view-tabs" style="display: flex; gap: 0; margin-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+        <button id="tab-dashboard" class="tab-btn active" data-view="dashboard">
+          Dashboard <span class="tab-detach" data-detach="dashboard" title="Open in new window">⧉</span>
+        </button>
+        <button id="tab-explorer" class="tab-btn hidden" data-view="exploratory">
+          🔍 Explorer Testing <span class="tab-detach" data-detach="exploratory" title="Open in new window">⧉</span>
+        </button>
+      </div>
+
       <!-- Layout de Fase 0 (Dashboard) y su panel lateral derecho -->
       <div id="phase-dashboard-layout" style="display: flex; flex-direction: row; gap: 20px; flex: 1; min-height: 0;">
         <!-- Phase 0: Dashboard (Gestor de Proyectos) -->
@@ -127,7 +137,7 @@
     <section id="phase-exploratory" class="phase hidden" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="margin: 0; border: none;" data-i18n="phase-exploratory-title">Exploratory Testing Workspace</h2>
-        <button id="btn-exploratory-back" class="btn btn-secondary" data-i18n="btn-back">Back</button>
+        <button id="btn-exploratory-back" class="btn btn-secondary" data-i18n="btn-close">✕ Close</button>
       </div>
 
       <div style="display: flex; gap: 20px; flex: 1; min-height: 0;">

@@ -299,3 +299,35 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
   margin-left: 8px;
 }
 
+/* ── View Tabs ── */
+.tab-btn {
+  padding: 10px 20px;
+  background: transparent;
+  color: #8b949e;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.2s;
+  font-family: inherit;
+}
+.tab-btn:hover {
+  color: var(--text-color);
+  background: rgba(255,255,255,0.03);
+}
+.tab-btn.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+}
+.tab-detach {
+  font-size: 12px;
+  margin-left: 6px;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: 0.2s;
+  display: inline-block;
+}
+.tab-btn:hover .tab-detach { opacity: 0.7; }
+.tab-detach:hover { opacity: 1 !important; color: var(--accent-color); }
+

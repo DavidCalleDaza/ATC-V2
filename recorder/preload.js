@@ -38,4 +38,7 @@ contextBridge.exposeInMainWorld('api', {
   parseExcel: (data) => ipcRenderer.invoke('parse-excel', data),
   saveTestCases: (data) => ipcRenderer.invoke('save-test-cases', data),
   loadTestCases: (data) => ipcRenderer.invoke('load-test-cases', data),
+  createDetachedView: (tabId) => ipcRenderer.invoke('create-detached-view', { tabId }),
+  closeDetachedView: (tabId) => ipcRenderer.invoke('close-detached-view', { tabId }),
+  onTabDetachedClosed: (cb) => ipcRenderer.on('tab-detached-closed', (_e, data) => cb(data)),
 });

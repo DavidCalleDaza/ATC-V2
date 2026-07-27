@@ -277,6 +277,11 @@ const state = {
 };
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
+
+// ─── Detached Window Detection ──────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const detachedView = urlParams.get('detached');
+const isDetachedWindow = !!detachedView;
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 const phases = {
@@ -289,8 +294,24 @@ const phases = {
 };
 
 function showPhase(name) {
-  Object.values(phases).forEach(p => p.classList.add('hidden'));
-  phases[name].classList.remove('hidden');
+  const isExplorer = name === 'exploratory';
+
+  // Non-tab phases: always hide first
+  ['review', 'region', 'recording', 'done'].forEach(k => {
+    if (phases[k]) phases[k].classList.add('hidden');
+  });
+
+  // Dashboard vs Explorer: mutually exclusive tab content
+  phases.dashboard.classList.toggle('hidden', isExplorer);
+  phases.exploratory.classList.toggle('hidden', !isExplorer);
+
+  // Update tab bar
+  $('#tab-dashboard').classList.toggle('active', !isExplorer);
+  $('#tab-explorer').classList.toggle('active', isExplorer);
+  if (isExplorer) {
+    $('#tab-explorer').classList.remove('hidden');
+  }
+
   if (name === 'dashboard') {
     $('#sidebar-hu-details').classList.add('hidden');
   }
@@ -1860,11 +1881,25 @@ $('#btn-exploratory-back').addEventListener('click', () => {
   const video = $('#exploratory-video');
   video.pause();
   $('#btn-exp-play').textContent = '▶';
-  
+
   showPhase('dashboard');
   renderProjects();
   renderSprints();
   renderHus();
+});
+
+// Tab navigation
+$('#tab-dashboard').addEventListener('click', () => {
+  showPhase('dashboard');
+  renderProjects();
+  renderSprints();
+  renderHus();
+});
+
+$('#tab-explorer').addEventListener('click', async () => {
+  showPhase('exploratory');
+  await populateExploratoryProjects();
+  renderEvidenceList();
 });
 
 // Dropdown Sync
@@ -2932,5 +2967,48 @@ $('#btn-record-another').addEventListener('click', () => {
   $('#btn-exp-continue-editing').classList.add('hidden');
 });
 
-renderProjects();
-showPhase('dashboard');
+// ── Detached Window: Tab Detach Handlers ────────────────────────────────────
+$$('.tab-detach').forEach(icon => {
+  icon.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const tabId = icon.dataset.detach;
+    await window.api.createDetachedView(tabId);
+
+    // Hide the detached tab in main window and switch to the other view
+    $(`#tab-${tabId}`).classList.add('hidden');
+    const otherTab = tabId === 'exploratory' ? 'dashboard' : 'exploratory';
+    showPhase(otherTab);
+    if (otherTab === 'dashboard') {
+      renderProjects();
+      renderSprints();
+      renderHus();
+    }
+  });
+});
+
+// When a detached window is closed, restore its tab in the main window
+window.api.onTabDetachedClosed(({ tabId }) => {
+  $(`#tab-${tabId}`).classList.remove('hidden');
+});
+
+// ── Init ────────────────────────────────────────────────────────────────────
+if (isDetachedWindow) {
+  // Detached window: hide tabs bar, sidebar actions, show only the assigned view
+  $('#view-tabs').classList.add('hidden');
+  $('#sidebar-canvas').classList.add('hidden');
+  document.querySelector('header').classList.add('hidden');
+
+  if (detachedView === 'exploratory') {
+    showPhase('exploratory');
+    populateExploratoryProjects().then(() => renderEvidenceList());
+  } else {
+    showPhase('dashboard');
+    renderProjects();
+    renderSprints();
+    renderHus();
+  }
+} else {
+  // Main window: normal init
+  renderProjects();
+  showPhase('dashboard');
+}

@@ -1300,6 +1300,7 @@ ipcMain.handle('save-recording', async (_event, { project, sprint, huName, huId,
 // ── App Lifecycle ─────────────────────────────────────────────────────────────
 
 let appWin = null;
+const detachedWindows = new Map(); // tabId -> BrowserWindow
 
 function createWindow() {
   nativeTheme.themeSource = 'dark';
@@ -1360,8 +1361,9 @@ app.whenReady().then(() => {
   createWindow();
 });
 app.on('window-all-closed', () => {
-  closeOverlayWindow();          // always destroy floating overlay on quit
-  if (process.platform !== 'darwin') app.quit();
+  closeOverlayWindow();
+  // Only quit if the main window is closed (detached windows don't count)
+  if (BrowserWindow.getAllWindows().length === 0 && process.platform !== 'darwin') app.quit();
 });
 
 // Safety net: destroy overlay before any quit path
@@ -1370,3 +1372,61 @@ app.on('before-quit', () => {
 });
 
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+
+// ── Detached View Windows ────────────────────────────────────────────────────
+
+ipcMain.handle('create-detached-view', async (_event, { tabId }) => {
+  // Close existing detached window for this tab if any
+  if (detachedWindows.has(tabId)) {
+    const existing = detachedWindows.get(tabId);
+    if (existing && !existing.isDestroyed()) existing.close();
+    detachedWindows.delete(tabId);
+  }
+
+  const winOptions = {
+    width: 1200,
+    height: 850,
+    backgroundColor: '#0d1117',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    title: `Automatic test case — ${tabId === 'exploratory' ? 'Explorer Testing' : 'Dashboard'}`,
+  };
+
+  if (process.platform === 'win32') {
+    winOptions.titleBarStyle = 'hidden';
+    winOptions.titleBarOverlay = {
+      color: '#070a0e',
+      symbolColor: '#c9d1d9',
+      height: 32
+    };
+  }
+
+  const win = new BrowserWindow(winOptions);
+  win.loadFile(path.join(__dirname, 'renderer', 'index.html'), { query: { detached: tabId } });
+  win.removeMenu();
+
+  detachedWindows.set(tabId, win);
+
+  win.on('closed', () => {
+    detachedWindows.delete(tabId);
+    // Notify main window so it can restore the tab
+    if (appWin && !appWin.isDestroyed()) {
+      appWin.webContents.send('tab-detached-closed', { tabId });
+    }
+  });
+
+  return { success: true };
+});
+
+ipcMain.handle('close-detached-view', async (_event, { tabId }) => {
+  if (detachedWindows.has(tabId)) {
+    const win = detachedWindows.get(tabId);
+    if (win && !win.isDestroyed()) win.close();
+    detachedWindows.delete(tabId);
+  }
+  return { success: true };
+});
