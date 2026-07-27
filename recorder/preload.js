@@ -33,4 +33,5 @@ contextBridge.exposeInMainWorld('api', {
   deleteHuEvidence: (data) => ipcRenderer.invoke('delete-hu-evidence', data),
   readEvidenceMeta: (data) => ipcRenderer.invoke('read-evidence-meta', data),
   updateEvidenceMeta: (data) => ipcRenderer.invoke('update-evidence-meta', data),
+  organizeInsumos: (data) => ipcRenderer.invoke('organize-insumos', data),
 });

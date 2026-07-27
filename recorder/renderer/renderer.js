@@ -61,6 +61,7 @@ const translations = {
     "input-placeholder-name": "Enter name...",
     "window-title": "Automatic test case — Evidence Recorder",
     "btn-exploratory": "🔍 Exploratory Testing",
+    "btn-organize-insumos": "📦 Organize Supplies",
     "phase-exploratory-title": "Exploratory Testing Workspace",
     "exp-project": "Project",
     "exp-sprint": "Sprint",
@@ -147,6 +148,7 @@ const translations = {
     "input-placeholder-name": "Escribe aquí...",
     "window-title": "Automatic test case — Grabador de Evidencias",
     "btn-exploratory": "🔍 Pruebas Exploratorias",
+    "btn-organize-insumos": "📦 Organizar Insumos",
     "phase-exploratory-title": "Espacio de Trabajo de Pruebas Exploratorias",
     "exp-project": "Proyecto",
     "exp-sprint": "Sprint",
@@ -385,6 +387,7 @@ async function renderProjects() {
   });
 
   $('#btn-add-sprint').classList.toggle('hidden', !state.project);
+  $('#btn-organize-insumos').classList.toggle('hidden', !state.project);
   makeSortable('dash-projects-list', 'project', (newOrder) => {
     localStorage.setItem('projectsOrder', JSON.stringify(newOrder));
   });
@@ -938,6 +941,25 @@ $('#btn-add-sprint').onclick = () => openModal(translations[currentLang]['modal-
 $('#btn-add-hu').onclick = () => openModal(translations[currentLang]['modal-new-hu'], 'Ej: HU-123_Login', async (val) => {
   await window.api.createHu({ project: state.project, sprint: state.sprint, huName: val });
   renderHus();
+});
+
+$('#btn-organize-insumos').addEventListener('click', async () => {
+  if (!state.project) return;
+  const t = translations[currentLang];
+  const confirmMsg = currentLang === 'es'
+    ? `Se organizarán los archivos multimedia (videos, imágenes, JSON) de todas las HUs del proyecto "${state.project}" en carpetas Insumos/. ¿Continuar?`
+    : `Multimedia files (videos, images, JSON) from all HUs in project "${state.project}" will be organized into Insumos/ folders. Continue?`;
+  openConfirmModal(t['btn-organize-insumos'], confirmMsg, async () => {
+    const res = await window.api.organizeInsumos({ project: state.project });
+    if (res.success) {
+      const msg = currentLang === 'es'
+        ? `Proyecto "${state.project}" organizado.\n\nHUs procesadas: ${res.totalHus}\nArchivos movidos: ${res.totalMoved}`
+        : `Project "${state.project}" organized.\n\nHUs processed: ${res.totalHus}\nFiles moved: ${res.totalMoved}`;
+      showDarkAlert(t['btn-organize-insumos'], msg);
+    } else {
+      alert('Error: ' + res.error);
+    }
+  });
 });
 
 $('#btn-start-flow').onclick = () => loadHuReview(state.selectedHu);

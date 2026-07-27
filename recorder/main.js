@@ -398,6 +398,86 @@ ipcMain.handle('select-files', async () => {
   return result.canceled ? [] : result.filePaths;
 });
 
+// ── Organizar Insumos ─────────────────────────────────────────────────────────
+
+const MULTIMEDIA_EXTENSIONS = new Set(['.mp4', '.png', '.json']);
+
+ipcMain.handle('organize-insumos', async (_event, { project }) => {
+  try {
+    const projectDir = path.join(BASE_DIR, 'projects', project);
+    if (!fs.existsSync(projectDir)) {
+      return { success: false, error: `El proyecto "${project}" no existe` };
+    }
+
+    const sprints = fs.readdirSync(projectDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && e.name.toLowerCase().startsWith('sprint-'))
+      .map(e => e.name);
+
+    let totalMoved = 0;
+    const details = [];
+
+    for (const sprint of sprints) {
+      const sprintDir = path.join(projectDir, sprint);
+      const hus = fs.readdirSync(sprintDir, { withFileTypes: true })
+        .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')));
+
+      for (const hu of hus) {
+        const huDir = path.join(sprintDir, hu.name);
+        const insumosDir = path.join(huDir, 'Insumos');
+
+        const multimediaFiles = fs.readdirSync(huDir)
+          .filter(f => {
+            if (f.startsWith('.') || f.startsWith('~$')) return false;
+            const ext = path.extname(f).toLowerCase();
+            if (!MULTIMEDIA_EXTENSIONS.has(ext)) return false;
+            // Excluir _guide.json (metadata de audio guide)
+            if (ext === '.json' && f.includes('_guide')) return false;
+            return true;
+          });
+
+        if (multimediaFiles.length === 0) {
+          details.push({ hu: hu.name, moved: 0 });
+          continue;
+        }
+
+        fs.mkdirSync(insumosDir, { recursive: true });
+
+        let moved = 0;
+        for (const file of multimediaFiles) {
+          const src = path.join(huDir, file);
+          let dest = path.join(insumosDir, file);
+
+          // Evitar sobrescritura: agregar sufijo si ya existe
+          if (fs.existsSync(dest)) {
+            const ext = path.extname(file);
+            const base = path.basename(file, ext);
+            let counter = 1;
+            while (fs.existsSync(path.join(insumosDir, `${base}_${counter}${ext}`))) {
+              counter++;
+            }
+            dest = path.join(insumosDir, `${base}_${counter}${ext}`);
+          }
+
+          try {
+            fs.renameSync(src, dest);
+            moved++;
+          } catch (err) {
+            console.error(`[Insumos] Error moviendo ${file}: ${err.message}`);
+          }
+        }
+
+        totalMoved += moved;
+        details.push({ hu: hu.name, moved });
+      }
+    }
+
+    return { success: true, totalMoved, totalHus: details.length, details };
+  } catch (err) {
+    console.error('[Organize Insumos] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
 // ── Handlers de Generación ────────────────────────────────────────────────────
 
 ipcMain.handle('generate-audio-guide', async (_event, { project, huId }) => {
