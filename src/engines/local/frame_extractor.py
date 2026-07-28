@@ -8,9 +8,11 @@ analizar_videos.py y analizar_videos_ai.py.
 import logging
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
+
+_ffmpeg_available: Optional[bool] = None
 
 
 def extract_frames_fps(video_path: Path, output_dir: Path, fps: int = 1) -> List[Path]:
@@ -50,46 +52,14 @@ def extract_frames_fps(video_path: Path, output_dir: Path, fps: int = 1) -> List
     return frames
 
 
-def extract_single_frame(video_path: Path, output_path: Path, second: int) -> bool:
-    """
-    Extrae un único frame del video en el segundo indicado.
-
-    Args:
-        video_path: Ruta al archivo de video
-        output_path: Ruta del archivo de imagen de salida
-        second: Segundo del video a extraer
-
-    Returns:
-        True si la extracción fue exitosa
-    """
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-ss", str(second),
-        "-i", str(video_path),
-        "-frames:v", "1",
-        "-q:v", "2",
-        "-loglevel", "error",
-        str(output_path)
-    ]
-
-    try:
-        subprocess.run(cmd, check=True)
-        return output_path.exists()
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error extrayendo frame en segundo {second}: {e}")
-        return False
-    except FileNotFoundError:
-        logger.error("ffmpeg no está instalado")
-        return False
-
-
 def is_available() -> bool:
-    """Verifica si ffmpeg está disponible."""
+    """Verifica si ffmpeg está disponible (con cache)."""
+    global _ffmpeg_available
+    if _ffmpeg_available is not None:
+        return _ffmpeg_available
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True, timeout=5)
-        return True
+        _ffmpeg_available = True
     except (FileNotFoundError, subprocess.TimeoutExpired):
-        return False
+        _ffmpeg_available = False
+    return _ffmpeg_available

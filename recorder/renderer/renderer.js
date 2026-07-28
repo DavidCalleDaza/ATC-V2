@@ -99,6 +99,7 @@ const translations = {
     "cp-no-hu": "Select a User Story to view its test cases.",
     "cp-edit-title": "Edit Test Case",
     "cp-delete-confirm": "Are you sure you want to delete test case \"{name}\"?",
+    "cp-detail-title": "Test Case Detail",
     "cp-detail-back": "Back to list",
     "cp-detail-resumen": "Summary:",
     "cp-detail-precondiciones": "Preconditions:",
@@ -239,6 +240,7 @@ const translations = {
     "cp-no-hu": "Selecciona una Historia de Usuario para ver sus casos de prueba.",
     "cp-edit-title": "Editar Caso de Prueba",
     "cp-delete-confirm": "¿Estás seguro de que deseas eliminar el caso de prueba \"{name}\"?",
+    "cp-detail-title": "Detalle caso de prueba",
     "cp-detail-back": "Volver a la lista",
     "cp-detail-resumen": "Resumen:",
     "cp-detail-precondiciones": "Precondiciones:",
@@ -1086,6 +1088,7 @@ async function showSprintDetails(project, s) {
 
 async function showCpDetail(cp) {
   const t = translations[currentLang];
+  $('#right-drawer-title').textContent = t['cp-detail-title'];
   const field = (label, value) => `
     <div style="margin-bottom: 10px;">
       <span style="font-weight: 600; font-size: 11px; color: var(--accent-color); text-transform: uppercase;">${label}</span>
@@ -1581,18 +1584,42 @@ $('#btn-organize-insumos').addEventListener('click', async () => {
 $('#btn-generate-evidence').addEventListener('click', async () => {
   if (!state.project) return;
   const t = translations[currentLang];
+  let scope, scopeOpts;
+  if (state.selectedHu) {
+    scope = state.selectedHu.id;
+    scopeOpts = { project: state.project, huId: state.selectedHu.id };
+  } else if (state.sprint) {
+    scope = state.sprint;
+    scopeOpts = { project: state.project, sprint: state.sprint };
+  } else {
+    scope = currentLang === 'es' ? 'todo el proyecto' : 'all project';
+    scopeOpts = { project: state.project };
+  }
   const confirmMsg = currentLang === 'es'
-    ? `Se generará el documento de evidencia para todas las HUs del proyecto "${state.project}". Esto analizará los Insumos y los relacionará con los casos de prueba del Excel. ¿Continuar?`
-    : `Evidence documents will be generated for all HUs in project "${state.project}". This will analyze Insumos and match them with test cases from Excel. Continue?`;
+    ? `Se generará evidencia para ${scope}. Esto analizará los Insumos y los relacionará con los casos de prueba. ¿Continuar?`
+    : `Evidence will be generated for ${scope}. This will analyze Insumos and match them with test cases. Continue?`;
   openConfirmModal(t['btn-generate-evidence'], confirmMsg, async () => {
-    const res = await window.api.generateEvidence({ project: state.project });
-    if (res.success) {
-      const msg = currentLang === 'es'
-        ? `Evidencia generada exitosamente para el proyecto "${state.project}".\n\nLos documentos Word se guardaron en cada carpeta de HU.`
-        : `Evidence generated successfully for project "${state.project}".\n\nWord documents were saved in each HU folder.`;
-      showDarkAlert(t['btn-generate-evidence'], msg);
-    } else {
-      alert('Error: ' + res.error);
+    const btn = $('#btn-generate-evidence');
+    const originalText = btn.textContent;
+    btn.textContent = currentLang === 'es' ? '⏳ Generando...' : '⏳ Generating...';
+    btn.disabled = true;
+    try {
+      const res = await window.api.generateEvidence(scopeOpts);
+      if (res.success) {
+        const msg = currentLang === 'es'
+          ? `Evidencia generada exitosamente para ${scope}.\n\nLos documentos Word se guardaron en cada carpeta de HU.`
+          : `Evidence generated successfully for ${scope}.\n\nWord documents were saved in each HU folder.`;
+        showDarkAlert(t['btn-generate-evidence'], msg);
+      } else {
+        const errMsg = res.error ? res.error.split('\n').slice(-3).join('\n') : 'Unknown error';
+        alert('Error: ' + errMsg);
+      }
+    } catch (e) {
+      const errMsg = e.message ? e.message.split('\n').slice(-3).join('\n') : String(e);
+      alert('Error: ' + errMsg);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
     }
   });
 });

@@ -29,6 +29,8 @@ from src.engines.local.frame_extractor import extract_frames_fps, is_available a
 
 logger = logging.getLogger(__name__)
 
+MIN_MATCH_THRESHOLD = 0.25
+
 
 def _set_cell_shading(cell, color_hex: str):
     """Aplica color de fondo (shading) a una celda de tabla Word."""
@@ -258,7 +260,7 @@ class EvidenceGenerator:
         return fuzz.token_set_ratio(_clean_text(target), _clean_text(source)) / 100
 
     def _semantic_score(self, target: str, source: str, model) -> float:
-        """Score semántico usando sentence-transformers."""
+        """Score semántico usando sentence-transformers (normalizado a [0,1])."""
         if not source or not target:
             return 0.0
         try:
@@ -266,7 +268,8 @@ class EvidenceGenerator:
             from sentence_transformers import util
             emb_target = model.encode(target, convert_to_tensor=True)
             emb_source = model.encode(source, convert_to_tensor=True)
-            return float(util.cos_sim(emb_target, emb_source).item())
+            raw = float(util.cos_sim(emb_target, emb_source).item())
+            return max(0.0, raw)
         except Exception:
             return 0.0
 
@@ -280,7 +283,7 @@ class EvidenceGenerator:
         Score combinado: fuzzy + semántico.
         Pesos: fuzzy 0.4, semántico 0.6 (si disponible), fallback a fuzzy puro.
         """
-        target = f"{cp.nombre} {cp.resultado_esperado}"
+        target = f"{cp.nombre} {cp.resumen} {cp.resultado_esperado} {cp.pasos}"
 
         # Fuzzy: JSON (0.4) + OCR (0.3) = 0.7 max
         json_f = self._fuzzy_score(target, insumo.json_description)
@@ -305,6 +308,7 @@ class EvidenceGenerator:
     ) -> Dict[str, List[InsumoFile]]:
         """
         Relaciona insumos con CPs usando matching fuzzy + semántico.
+        Implementa batch encoding para performance: O(m+n) encode calls en vez de O(m×n).
 
         Returns:
             Dict mapeando cp_id → lista de InsumoFile ordenada por score
@@ -314,20 +318,71 @@ class EvidenceGenerator:
             return {}
 
         semantic_model = _get_semantic_model()
+        use_semantic = semantic_model is not None and semantic_model is not False
 
         mapping = {tc.id: [] for tc in test_cases}
 
-        for insumo in multimedia:
+        # Pre-compute target strings for all CPs
+        cp_targets = {}
+        for tc in test_cases:
+            cp_targets[tc.id] = f"{tc.nombre} {tc.resumen} {tc.resultado_esperado} {tc.pasos}"
+
+        # Batch encode CP targets if semantic model available
+        cp_embeddings = None
+        if use_semantic:
+            try:
+                import torch
+                cp_texts = [cp_targets[tc.id] for tc in test_cases]
+                cp_embeddings = semantic_model.encode(cp_texts, convert_to_tensor=True)
+            except Exception:
+                cp_embeddings = None
+
+        # Batch encode insumo texts if semantic model available
+        insumo_json_embeddings = None
+        insumo_ocr_embeddings = None
+        if use_semantic and cp_embeddings is not None:
+            try:
+                import torch
+                json_texts = [i.json_description or "" for i in multimedia]
+                ocr_texts = [i.ocr_text or "" for i in multimedia]
+                insumo_json_embeddings = semantic_model.encode(json_texts, convert_to_tensor=True)
+                insumo_ocr_embeddings = semantic_model.encode(ocr_texts, convert_to_tensor=True)
+            except Exception:
+                insumo_json_embeddings = None
+                insumo_ocr_embeddings = None
+
+        # Score each insumo against each CP
+        for idx, insumo in enumerate(multimedia):
             best_cp = None
             best_score = 0.0
 
-            for tc in test_cases:
-                score = self._combined_score(tc, insumo, semantic_model)
+            for cp_idx, tc in enumerate(test_cases):
+                target = cp_targets[tc.id]
+
+                # Fuzzy component
+                json_f = self._fuzzy_score(target, insumo.json_description)
+                ocr_f = self._fuzzy_score(target, insumo.ocr_text)
+                fuzzy_total = 0.5 * json_f + 0.5 * ocr_f
+
+                if use_semantic and cp_embeddings is not None and insumo_json_embeddings is not None:
+                    # Use pre-computed batch embeddings
+                    try:
+                        import torch
+                        from sentence_transformers import util
+                        json_s = max(0.0, float(util.cos_sim(cp_embeddings[cp_idx], insumo_json_embeddings[idx]).item()))
+                        ocr_s = max(0.0, float(util.cos_sim(cp_embeddings[cp_idx], insumo_ocr_embeddings[idx]).item()))
+                        semantic_total = 0.5 * json_s + 0.5 * ocr_s
+                        score = 0.4 * fuzzy_total + 0.6 * semantic_total
+                    except Exception:
+                        score = fuzzy_total
+                else:
+                    score = fuzzy_total
+
                 if score > best_score:
                     best_score = score
                     best_cp = tc.id
 
-            if best_cp:
+            if best_cp and best_score >= MIN_MATCH_THRESHOLD:
                 insumo.matched_cp = best_cp
                 insumo.match_score = best_score
                 mapping[best_cp].append(insumo)
@@ -336,9 +391,10 @@ class EvidenceGenerator:
             mapping[cp_id].sort(key=lambda x: x.match_score, reverse=True)
 
         matched_count = sum(1 for cp_id, files in mapping.items() if files)
-        method = "fuzzy+semántico" if semantic_model else "fuzzy"
+        method = "fuzzy+semántico" if use_semantic else "fuzzy"
         logger.info(
-            f"Matching ({method}): {matched_count}/{len(test_cases)} CPs con al menos 1 insumo"
+            f"Matching ({method}, threshold={MIN_MATCH_THRESHOLD}): "
+            f"{matched_count}/{len(test_cases)} CPs con al menos 1 insumo"
         )
         return mapping
 
