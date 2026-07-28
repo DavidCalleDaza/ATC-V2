@@ -12,15 +12,15 @@
   </div>
   <div id="app" style="display: flex; flex-direction: row; gap: 20px; height: 100%; max-width: 100%; margin: 0; padding: 20px; width: 100%;">
     <!-- Left Sidebar / Lienzo de acciones futuras -->
-    <aside id="sidebar-canvas" style="width: 250px; min-width: 250px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 15px; transition: margin-left 0.3s ease, opacity 0.3s ease; z-index: 10;">
+    <aside id="sidebar-canvas" style="width: 250px; min-width: 250px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 15px; transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease; z-index: 10;">
       <h3 style="font-size: 16px; color: var(--accent-color); margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;" data-i18n="sidebar-actions-title">Actions</h3>
       <div id="sidebar-actions-container" style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: flex-start; padding-top: 10px;">
-        <button id="btn-upload-files" class="btn btn-secondary w-full hidden" data-i18n="btn-upload" style="width: 100%;">Attach / Upload Files</button>
-        <button id="btn-exploratory" class="btn btn-secondary w-full" data-i18n="btn-exploratory" style="width: 100%; margin-top: 5px;">Exploratory Testing</button>
-        <button id="btn-parse-excel" class="btn btn-secondary w-full hidden" data-i18n="btn-parse-excel" style="width: 100%; margin-top: 5px;">Parse Excel</button>
-        <button id="btn-organize-insumos" class="btn btn-secondary w-full hidden" data-i18n="btn-organize-insumos" style="width: 100%; margin-top: 5px;">Organize Supplies</button>
-        <button id="btn-generate-evidence" class="btn btn-secondary w-full hidden" data-i18n="btn-generate-evidence" style="width: 100%; margin-top: 5px;">Generate Evidence</button>
-        <button id="btn-start-flow" class="btn btn-primary w-full hidden" data-i18n="btn-start-flow" style="width: 100%; margin-top: 5px;">➜ Go to Record Evidences</button>
+        <button id="btn-upload-files" class="btn btn-secondary btn-sidebar" data-i18n="btn-upload" style="width: 100%;"></button>
+        <button id="btn-exploratory" class="btn btn-secondary btn-sidebar" data-i18n="btn-exploratory" style="width: 100%;"></button>
+        <button id="btn-parse-excel" class="btn btn-secondary btn-sidebar" data-i18n="btn-parse-excel" style="width: 100%;"></button>
+        <button id="btn-organize-insumos" class="btn btn-secondary btn-sidebar" data-i18n="btn-organize-insumos" style="width: 100%;"></button>
+        <button id="btn-generate-evidence" class="btn btn-secondary btn-sidebar" data-i18n="btn-generate-evidence" style="width: 100%;"></button>
+        <button id="btn-start-flow" class="btn btn-primary btn-sidebar" data-i18n="btn-start-flow" style="width: 100%;"></button>
       </div>
 
       <!-- User Story sub section during Review/Recording -->
@@ -100,6 +100,7 @@
               <div class="dash-col-header">
                 <h3 data-i18n="col-sprints">Sprints <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
                 <div style="display: flex; gap: 6px;">
+                  <button id="btn-import-sprint" class="btn btn-small btn-secondary hidden" title="Import sprint from ZIP or folder"></button>
                   <button id="btn-export-sprint" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
                   <button id="btn-add-sprint" class="btn btn-small btn-primary hidden" title="New sprint"></button>
                 </div>
@@ -112,6 +113,7 @@
               <div class="dash-col-header">
                 <h3 data-i18n="col-hus">User Stories <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
                 <div style="display: flex; gap: 6px;">
+                  <button id="btn-import-hu" class="btn btn-small btn-secondary hidden" title="Import User Story from ZIP or folder"></button>
                   <button id="btn-export-hu" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
                   <button id="btn-add-hu" class="btn btn-small btn-primary hidden" title="New User Story"></button>
                 </div>
@@ -123,7 +125,10 @@
             <div class="dash-col flex-2">
               <div class="dash-col-header">
                 <h3 data-i18n="col-cps">Test Cases <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
-                <button id="btn-export-cp" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
+                <div style="display: flex; gap: 6px;">
+                  <button id="btn-import-cp" class="btn btn-small btn-secondary hidden" title="Import Test Cases from ZIP or folder"></button>
+                  <button id="btn-export-cp" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
+                </div>
               </div>
               <div class="dash-list" id="dash-cps-list">Select a User Story...</div>
             </div>

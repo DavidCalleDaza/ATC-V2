@@ -328,18 +328,16 @@ Responde únicamente con el párrafo de narración sugerido en español, sin pre
         return results
 
     def list_existing_guides(self) -> List[dict]:
-        """Lista todas las guías de audio ya generadas."""
+        """Lista todas las guías de audio ya generadas en projects/."""
+        from src.data.story_scanner import scan_all_hu_folders
         guides = []
-        for sprint_dir in sorted(self.output_dir.iterdir()):
-            if not sprint_dir.is_dir():
-                continue
-            for wav in sorted(sprint_dir.glob("*_guide.wav")):
-                md = wav.with_suffix('.wav').with_name(wav.stem.replace('_guide', '_guide') + '.md')
-                # Extraer HU ID del nombre
-                hu_id = wav.stem.replace('_guide', '')
+        for hu in scan_all_hu_folders(self.base_dir):
+            wav = hu.path / f"{hu.hu_id}_guide.wav"
+            md = hu.path / f"{hu.hu_id}_guide.md"
+            if wav.exists():
                 guides.append({
-                    "hu_id": hu_id,
-                    "sprint": sprint_dir.name,
+                    "hu_id": hu.hu_id,
+                    "sprint": hu.sprint,
                     "wav_path": wav,
                     "md_path": md if md.exists() else None,
                     "wav_size_kb": wav.stat().st_size // 1024,

@@ -7,8 +7,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 .dash-item.drag-over { border-top: 2px solid var(--accent-color) !important; }
 header { margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
 #btn-sidebar-toggle:hover { color: var(--accent-color); }
-#sidebar-canvas.collapsed { margin-left: -270px; opacity: 0; pointer-events: none; }
+
+/* Sidebar normal (visible) */
+#sidebar-canvas {
+  transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease !important;
+  overflow: hidden;
+}
 #sidebar-canvas:not(.collapsed) { opacity: 1; pointer-events: auto; }
+
+/* Sidebar collapsed: mini mode with only icons visible */
+#sidebar-canvas.collapsed {
+  width: 60px !important;
+  min-width: 60px !important;
+  padding: 15px 8px !important;
+  opacity: 1;
+  pointer-events: auto;
+}
+#sidebar-canvas.collapsed h3 {
+  font-size: 0 !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+#sidebar-canvas.collapsed h3::after {
+  content: "⚡";
+  font-size: 16px;
+  color: var(--accent-color);
+}
+#sidebar-canvas.collapsed #sidebar-actions-container .btn {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px;
+  padding: 8px !important;
+  font-size: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+#sidebar-canvas.collapsed #sidebar-actions-container .btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+#sidebar-canvas.collapsed #sidebar-hu-details {
+  display: none !important;
+}
+
+/* Sidebar buttons: left-aligned text */
+#sidebar-actions-container .btn {
+  text-align: left;
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
 h1 { color: var(--accent-color); font-size: 24px; margin-bottom: 5px; }
 .subtitle { color: #8b949e; font-size: 14px; }
 .phase { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; overflow-y: auto; }

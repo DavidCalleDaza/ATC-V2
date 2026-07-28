@@ -34,7 +34,7 @@ Agregar `playbackSpeed: 1.0` al objeto `state`.
 
 Agregar slider de velocidad en la sección `#phase-recording` (entre el botón de pausa y el botón de finalizar).
 
-**Estado**: ⬜ PENDIENTE
+**Estado**: ✅ COMPLETADO
 
 ### 2.3 Lógica — `recorder/renderer/renderer.js`
 
@@ -42,13 +42,13 @@ Agregar slider de velocidad en la sección `#phase-recording` (entre el botón d
 - Agregar event listener `input` en el slider de velocidad
 - Mostrar label con valor actual (ej: "1.0×")
 
-**Estado**: ⬜ PENDIENTE
+**Estado**: ✅ COMPLETADO
 
 ### 2.4 Estilos — `recorder/renderer/styles.css`
 
 Agregar estilos para `.speed-control`, `.speed-slider`, `.speed-label`.
 
-**Estado**: ⬜ PENDIENTE
+**Estado**: ✅ COMPLETADO
 
 ## 3. Voz femenina español latino (es_MX)
 

@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 from src.data.story_scanner import scan_sprints, scan_hu_folders

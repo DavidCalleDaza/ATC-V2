@@ -21,8 +21,8 @@ const translations = {
     "status-found": `${iconCheck(12)} File OK`,
     "status-missing": "Missing",
     "status-generated": `${iconCheck(12)} Generated`,
-    "btn-upload": "Attach / Upload Files",
-    "btn-start-flow": "➜ Go to Record Evidences",
+    "btn-upload": `${iconUpload(16)} Attach / Upload Files`,
+    "btn-start-flow": `${iconVideo(16)} Go to Record Evidences`,
     "phase1-title": "1. Prepare Audio Guide",
     "audio-missing-title": "Missing Audio Guide",
     "audio-missing-text": "The audio and script for this HU have not been generated.",
@@ -161,8 +161,8 @@ const translations = {
     "status-found": `${iconCheck(12)} Archivo OK`,
     "status-missing": "Falta",
     "status-generated": `${iconCheck(12)} Generado`,
-    "btn-upload": "Adjuntar / Subir Archivos",
-    "btn-start-flow": "➜ Ir a Grabar Evidencias",
+    "btn-upload": `${iconUpload(16)} Adjuntar / Subir Archivos`,
+    "btn-start-flow": `${iconVideo(16)} Ir a Grabar Evidencias`,
     "phase1-title": "1. Preparar Audio-Guía",
     "audio-missing-title": "Falta Audio-Guía",
     "audio-missing-text": "El audio y guión para esta HU no han sido generados.",
@@ -522,9 +522,7 @@ async function renderProjects() {
   $('#btn-add-sprint').classList.toggle('hidden', !state.project);
   $('#btn-export-project').classList.toggle('hidden', !state.project);
   $('#btn-export-sprint').classList.toggle('hidden', !state.project);
-  $('#btn-organize-insumos').classList.toggle('hidden', !state.project);
-  $('#btn-generate-evidence').classList.toggle('hidden', !state.project);
-  $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
+  $('#btn-import-sprint').classList.toggle('hidden', !state.project);
   makeSortable('dash-projects-list', 'project', (newOrder) => {
     localStorage.setItem('projectsOrder', JSON.stringify(newOrder));
   });
@@ -534,8 +532,6 @@ async function renderSprints() {
   const list = $('#dash-sprints-list');
   if (!state.project) { 
     list.innerHTML = translations[currentLang]['status-select-project']; 
-    $('#btn-upload-files').classList.add('hidden');
-    $('#btn-start-flow').classList.add('hidden');
     return; 
   }
   
@@ -664,7 +660,7 @@ async function renderSprints() {
 
   $('#btn-add-hu').classList.toggle('hidden', !state.sprint);
   $('#btn-export-hu').classList.toggle('hidden', !state.sprint);
-  $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
+  $('#btn-import-hu').classList.toggle('hidden', !state.sprint);
   makeSortable('dash-sprints-list', 'sprint', (newOrder) => {
     localStorage.setItem('sprintsOrder_' + state.project, JSON.stringify(newOrder));
   });
@@ -674,8 +670,6 @@ async function renderHus() {
   const list = $('#dash-hus-list');
   if (!state.sprint) { 
     list.innerHTML = translations[currentLang]['status-select-sprint']; 
-    $('#btn-upload-files').classList.add('hidden');
-    $('#btn-start-flow').classList.add('hidden');
     return; 
   }
   
@@ -694,8 +688,6 @@ async function renderHus() {
   
   if (state.hus.length === 0) {
     list.innerHTML = translations[currentLang]['status-no-hus'];
-    $('#btn-upload-files').classList.add('hidden');
-    $('#btn-start-flow').classList.add('hidden');
   }
   
   state.hus.forEach(hu => {
@@ -804,6 +796,9 @@ async function renderHus() {
     }
   });
 
+  $('#btn-export-cp').classList.toggle('hidden', !state.selectedHu);
+  $('#btn-import-cp').classList.toggle('hidden', !state.selectedHu);
+
   makeSortable('dash-hus-list', 'hu', (newOrder) => {
     localStorage.setItem('husOrder_' + state.project + '_' + state.sprint, JSON.stringify(newOrder));
   });
@@ -826,6 +821,7 @@ function renderCps() {
   list.innerHTML = '';
 
   $('#btn-export-cp').classList.toggle('hidden', !state.selectedHu);
+  $('#btn-import-cp').classList.toggle('hidden', !state.selectedHu);
 
   if (!state.selectedHu) {
     list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${t['cp-no-hu']}</span>`;
@@ -1278,8 +1274,6 @@ async function showHuDetails(hu) {
   `;
   
   $('#btn-start-flow').disabled = !hu.hasExcel;
-  $('#btn-upload-files').classList.remove('hidden');
-  $('#btn-start-flow').classList.remove('hidden');
 
   const parsedCpsDetail = state.parsedTestCases && state.parsedTestCases[hu.id];
   if (parsedCpsDetail) {
@@ -1495,6 +1489,12 @@ $('#btn-export-cp').innerHTML = iconExport(14);
 $('#btn-add-project').innerHTML = iconPlus(12);
 $('#btn-add-sprint').innerHTML = iconPlus(12);
 $('#btn-add-hu').innerHTML = iconPlus(12);
+$('#btn-import-sprint').innerHTML = iconImport(14);
+$('#btn-import-hu').innerHTML = iconImport(14);
+$('#btn-import-cp').innerHTML = iconImport(14);
+
+// Initialize sidebar toggle icon
+updateSidebarToggleIcon();
 
 // Export Project
 async function exportCurrentProject() {
@@ -1526,6 +1526,11 @@ const importChoiceModal = $('#modal-import-choice-overlay');
 $('#btn-import-project').onclick = () => {
   importChoiceModal.classList.remove('hidden');
 };
+
+// Import Sprint / HU / CP — reuse the same modal
+$('#btn-import-sprint').onclick = () => { importChoiceModal.classList.remove('hidden'); };
+$('#btn-import-hu').onclick = () => { importChoiceModal.classList.remove('hidden'); };
+$('#btn-import-cp').onclick = () => { importChoiceModal.classList.remove('hidden'); };
 
 $('#btn-import-choice-cancel').onclick = () => {
   importChoiceModal.classList.add('hidden');
@@ -3336,8 +3341,13 @@ window.api.onTabDetachedClosed(({ tabId }) => {
 });
 
 // ── Sidebar Toggle (Hamburger Menu) ────────────────────────────────────────
+function updateSidebarToggleIcon() {
+  const isCollapsed = $('#sidebar-canvas').classList.contains('collapsed');
+  $('#btn-sidebar-toggle').innerHTML = isCollapsed ? iconArrowRight(20) : iconArrowLeft(20);
+}
 $('#btn-sidebar-toggle').addEventListener('click', () => {
   $('#sidebar-canvas').classList.toggle('collapsed');
+  updateSidebarToggleIcon();
 });
 
 // ── Init ────────────────────────────────────────────────────────────────────

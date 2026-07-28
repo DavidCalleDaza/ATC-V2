@@ -4,17 +4,14 @@ main.py — CLI unificado del proyecto automatic-test-case.
 
 Subcomandos:
   audio-guide   Genera audio-guía narrada para ejecución de pruebas
-  evidence      Genera documentos Word de evidencia (pipeline original)
   evidence-v2   Genera evidencia analizando Insumos con matching inteligente
-  create-suite  Crea estructura Test_Suite/ con carpetas y .md por CP
   recorder      Lanza la aplicación de grabación de pantalla (Electron)
+  parse-excel   Lee Excels de HUs y retorna JSON con casos de prueba
 
 Ejemplos:
   python main.py audio-guide --hu HU-6682
   python main.py audio-guide --sprint sprint-02
   python main.py audio-guide --all
-  python main.py evidence --all
-  python main.py create-suite --sprint sprint-02
 """
 
 import sys
@@ -77,79 +74,6 @@ def cmd_audio_guide(args):
         print("Especifica --hu, --sprint, --all o --list. Usa --help para más info.")
 
 
-# ── Subcomando: evidence (pipeline original) ───────────────────────────────────
-
-def cmd_evidence(args):
-    """Genera documentos Word de evidencia (pipeline original de main.py)."""
-    import json
-    from docx import Document
-    from core.excel_parser import read_hu_excel
-    from core.image_processor import load_image_map, get_available_images, select_best_image_for_cp
-    from core.docx_generator import find_hu_docx, insert_image_into_box_table
-
-    # Cargar configuración
-    config_dir = BASE_DIR / "config"
-    with open(config_dir / "settings.json", 'r', encoding='utf-8') as f:
-        settings = json.load(f)
-    with open(config_dir / "trazabilidad.json", 'r', encoding='utf-8') as f:
-        trazabilidad = json.load(f)
-
-    video_dir = BASE_DIR / settings.get("video_dir", "video")
-    map_file = BASE_DIR / settings.get("map_file", "mapa_imagenes.json")
-    image_map = load_image_map(map_file)
-    available_images = get_available_images(video_dir)
-
-    hu_folders = settings.get("hu_folders", {})
-
-    if args.hu:
-        if args.hu not in hu_folders:
-            print(f"✗ {args.hu} no encontrada en settings.json")
-            sys.exit(1)
-        hu_folders = {args.hu: hu_folders[args.hu]}
-
-    for hu_id, folder_name in hu_folders.items():
-        folder_path = BASE_DIR / folder_name
-        logging.info(f"{'='*50}")
-        logging.info(f"PROCESANDO {hu_id}: {folder_name}")
-
-        if not folder_path.exists():
-            logging.error(f"No existe la carpeta {folder_name}")
-            continue
-
-        df_excel = read_hu_excel(folder_path)
-        docx_path = find_hu_docx(folder_path)
-
-        if not docx_path:
-            logging.error(f"No se encontró plantilla Word original en {folder_name}")
-            continue
-
-        doc = Document(docx_path)
-        box_tables = [t for t in doc.tables if len(t.rows) == 1 and len(t.columns) == 1]
-
-        cp_list = []
-        if not df_excel.empty and 'Id Caso de prueba' in df_excel.columns:
-            cp_list = [str(cp).strip() for cp in df_excel['Id Caso de prueba'].dropna()]
-
-        for idx, b_table in enumerate(box_tables):
-            cp_id = cp_list[idx] if idx < len(cp_list) else f"CP_{idx+1:03d}"
-            selected_imgs = select_best_image_for_cp(hu_id, cp_id, available_images, image_map, trazabilidad)
-            insert_image_into_box_table(b_table, selected_imgs, video_dir)
-
-        deliverables_dir = BASE_DIR / "deliverables"
-        deliverables_dir.mkdir(exist_ok=True)
-        out_root = deliverables_dir / f"Evidencia_{hu_id}.docx"
-        out_folder = folder_path / f"Evidencia_{hu_id}_Final.docx"
-
-        try:
-            doc.save(str(out_root))
-            doc.save(str(out_folder))
-            logging.info(f"Evidencia guardada: {out_root.relative_to(BASE_DIR)}")
-        except Exception as e:
-            logging.error(f"Error guardando evidencia {hu_id}: {e}")
-
-    logging.info("=== PROCESO DE EVIDENCIAS COMPLETADO ===")
-
-
 # ── Subcomando: evidence-v2 (matching inteligente desde Insumos) ───────────────
 
 def cmd_evidence_v2(args):
@@ -195,25 +119,6 @@ def cmd_evidence_v2(args):
 
     if not results:
         print("✗ No se generaron documentos de evidencia")
-
-
-# ── Subcomando: create-suite ───────────────────────────────────────────────────
-
-def cmd_create_suite(args):
-    """Crea estructura Test_Suite/ con carpetas y .md por CP."""
-    from scripts.create_suite_folders import create_suite_for_folder
-    from src.data.story_scanner import scan_hu_folders, scan_all_hu_folders
-
-    if args.sprint:
-        folders = scan_hu_folders(BASE_DIR, args.sprint)
-    else:
-        folders = scan_all_hu_folders(BASE_DIR)
-
-    for hu in folders:
-        if hu.has_excel:
-            create_suite_for_folder(hu.path)
-
-    print(f"✓ Test Suites procesados: {len(folders)} HUs")
 
 
 # ── Subcomando: recorder ──────────────────────────────────────────────────────
@@ -312,15 +217,6 @@ def build_parser() -> argparse.ArgumentParser:
     ag.add_argument("--project", type=str, default="Legacy", help="Proyecto a procesar")
     ag.add_argument("--force", action="store_true", help="Regenerar archivos existentes")
 
-    # evidence
-    ev = subparsers.add_parser(
-        "evidence",
-        help="Genera documentos Word de evidencia"
-    )
-    ev_group = ev.add_mutually_exclusive_group()
-    ev_group.add_argument("--hu", type=str, help="ID de HU específica")
-    ev_group.add_argument("--all", action="store_true", default=True, help="Procesar todas las HU (default)")
-
     # evidence-v2
     ev2 = subparsers.add_parser(
         "evidence-v2",
@@ -331,13 +227,6 @@ def build_parser() -> argparse.ArgumentParser:
     ev2_group.add_argument("--sprint", type=str, help="Sprint a procesar (ej: sprint-02)")
     ev2_group.add_argument("--all", action="store_true", help="Procesar todos los sprints")
     ev2.add_argument("--project", type=str, required=True, help="Nombre del proyecto")
-
-    # create-suite
-    cs = subparsers.add_parser(
-        "create-suite",
-        help="Crea estructura Test_Suite/ con carpetas y .md por CP"
-    )
-    cs.add_argument("--sprint", type=str, help="Sprint específico a procesar")
 
     # recorder
     subparsers.add_parser(
@@ -368,9 +257,7 @@ def main():
 
     commands = {
         "audio-guide": cmd_audio_guide,
-        "evidence": cmd_evidence,
         "evidence-v2": cmd_evidence_v2,
-        "create-suite": cmd_create_suite,
         "recorder": cmd_recorder,
         "parse-excel": cmd_parse_excel,
     }
