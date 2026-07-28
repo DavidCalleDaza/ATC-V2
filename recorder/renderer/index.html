@@ -84,7 +84,7 @@
             <!-- Columna de Proyectos -->
             <div class="dash-col">
               <div class="dash-col-header">
-                <h3 data-i18n="col-projects">Projects</h3>
+                <h3 data-i18n="col-projects">Projects <span class="col-collapse-icon">│</span></h3>
                 <div style="display: flex; gap: 6px;">
                   <button id="btn-import-project" class="btn btn-small btn-secondary" data-i18n="btn-import-project" title="Import project from ZIP or folder">📥</button>
                   <button id="btn-add-project" class="btn btn-small btn-primary" data-i18n="btn-new">+ New</button>
@@ -96,7 +96,7 @@
             <!-- Columna de Sprints -->
             <div class="dash-col">
               <div class="dash-col-header">
-                <h3 data-i18n="col-sprints">Sprints</h3>
+                <h3 data-i18n="col-sprints">Sprints <span class="col-collapse-icon">│</span></h3>
                 <button id="btn-add-sprint" class="btn btn-small btn-primary hidden" data-i18n="btn-new">+ New</button>
               </div>
               <div class="dash-list" id="dash-sprints-list">Select a project...</div>
@@ -105,7 +105,7 @@
             <!-- Columna de HUs y Archivos -->
             <div class="dash-col flex-2">
               <div class="dash-col-header">
-                <h3 data-i18n="col-hus">User Stories</h3>
+                <h3 data-i18n="col-hus">User Stories <span class="col-collapse-icon">│</span></h3>
                 <button id="btn-add-hu" class="btn btn-small btn-primary hidden" data-i18n="btn-new-hu">+ New HU</button>
               </div>
               <div class="dash-list" id="dash-hus-list">Select a sprint...</div>
@@ -114,7 +114,7 @@
             <!-- Columna de Casos de Prueba -->
             <div class="dash-col flex-2">
               <div class="dash-col-header">
-                <h3 data-i18n="col-cps">Test Cases</h3>
+                <h3 data-i18n="col-cps">Test Cases <span class="col-collapse-icon">│</span></h3>
               </div>
               <div class="dash-list" id="dash-cps-list">Select a User Story...</div>
             </div>
@@ -127,7 +127,7 @@
             <h3 style="font-size: 16px; color: var(--accent-color); margin: 0;" id="right-drawer-title">Details</h3>
             <button id="btn-hu-details-close" class="btn btn-icon" style="font-size: 16px; color: var(--text-color);">✕</button>
           </div>
-          <div id="right-drawer-content" style="display: flex; flex-direction: column; gap: 15px; flex: 1; padding-top: 10px; width: 280px;">
+          <div id="right-drawer-content" style="display: flex; flex-direction: column; gap: 15px; flex: 1; padding-top: 10px; width: 360px; overflow-y: auto;">
             <!-- Dinámico por JS -->
           </div>
         </aside>

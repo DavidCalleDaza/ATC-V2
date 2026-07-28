@@ -6,9 +6,12 @@ const translations = {
     "lang-label": "Language:",
     "phase0-title": "0. Projects Dashboard",
     "col-projects": "Projects",
+    "detail-title-projects": "Project Detail",
     "btn-new": "+ New",
     "col-sprints": "Sprints",
+    "detail-title-sprints": "Sprint Detail",
     "col-hus": "User Stories",
+    "detail-title-hus": "User Story Detail",
     "col-cps": "Test Cases",
     "btn-new-hu": "+ New HU",
     "status-select-project": "Select a project...",
@@ -146,9 +149,12 @@ const translations = {
     "lang-label": "Idioma:",
     "phase0-title": "0. Dashboard de Proyectos",
     "col-projects": "Proyectos",
+    "detail-title-projects": "Detalle Proyectos",
     "btn-new": "+ Nuevo",
     "col-sprints": "Sprints",
+    "detail-title-sprints": "Detalle Sprints",
     "col-hus": "Historias de Usuario",
+    "detail-title-hus": "Detalle Historias de Usuario",
     "col-cps": "Casos de Prueba",
     "btn-new-hu": "+ Nueva HU",
     "status-select-project": "Selecciona un proyecto...",
@@ -989,7 +995,7 @@ async function showProjectDetails(p) {
     </tr>
   `).join('');
 
-  $('#right-drawer-title').textContent = t['col-projects'];
+  $('#right-drawer-title').textContent = t['detail-title-projects'];
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${p}</h4>
     <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
@@ -1051,7 +1057,7 @@ async function showSprintDetails(project, s) {
     </tr>
   `).join('');
 
-  $('#right-drawer-title').textContent = t['col-sprints'];
+  $('#right-drawer-title').textContent = t['detail-title-sprints'];
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 10px;">${s}</h4>
     <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
@@ -1170,7 +1176,7 @@ async function showCpDetail(cp) {
 
 async function showHuDetails(hu) {
   const t = translations[currentLang];
-  $('#right-drawer-title').textContent = t['col-hus'];
+  $('#right-drawer-title').textContent = t['detail-title-hus'];
 
   const parsedCps = state.parsedTestCases && state.parsedTestCases[hu.id];
 
@@ -1359,7 +1365,20 @@ $('#btn-hu-details-close').onclick = () => {
 
 // Click on compact column labels (Projects/Sprints) closes the drawer
 $('.dashboard-grid').addEventListener('click', (e) => {
+  const icon = e.target.closest('.col-collapse-icon');
+  if (icon) {
+    const col = icon.closest('.dash-col');
+    if (col) col.classList.toggle('collapsed');
+    return;
+  }
   const h3 = e.target.closest('.dash-col-header h3');
+  if (h3) {
+    const col = h3.closest('.dash-col');
+    if (col && col.classList.contains('collapsed')) {
+      col.classList.remove('collapsed');
+      return;
+    }
+  }
   if (!h3) return;
   const grid = $('.dashboard-grid');
   if (!grid || !grid.classList.contains('drawer-open')) return;
