@@ -187,6 +187,22 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
   color: var(--accent-color);
 }
 
+/* ── Vertical Collapse Icon (—) ── */
+.col-v-collapse-icon {
+  color: var(--text-color);
+  opacity: 0.4;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 300;
+  transition: opacity 0.2s, color 0.2s;
+  user-select: none;
+  margin-right: 4px;
+}
+.col-v-collapse-icon:hover {
+  opacity: 1;
+  color: var(--accent-color);
+}
+
 /* ── Collapsed Column (per-column) ── */
 .dash-col.collapsed {
   flex: 0 0 48px !important;
@@ -216,34 +232,21 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
   cursor: pointer;
 }
 .dash-col.collapsed .dash-list {
-  padding: 4px 2px;
-  gap: 2px;
-  align-items: stretch;
-}
-.dash-col.collapsed .dash-item {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 2px;
-  min-height: 60px;
-  text-align: center;
-  gap: 0;
-}
-.dash-col.collapsed .dash-item span:first-child {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: 0.5px;
-}
-.dash-col.collapsed .dash-item .badge {
   display: none !important;
 }
-.dash-col.collapsed .hu-prefix {
+.dash-col.collapsed .dash-col-header {
+  border-bottom: none;
+}
+
+/* ── Vertical Collapsed Column ── */
+.dash-col.v-collapsed {
+  align-self: flex-start;
+}
+.dash-col.v-collapsed .dash-list {
   display: none !important;
+}
+.dash-col.v-collapsed .dash-col-header {
+  border-bottom: none;
 }
 
 /* ── Exploratory Testing CSS ── */

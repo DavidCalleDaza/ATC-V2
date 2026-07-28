@@ -296,12 +296,12 @@ function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (t[key]) {
-      const spanIcon = el.querySelector('span');
-      if (spanIcon) {
+      const spans = el.querySelectorAll('span');
+      if (spans.length > 0) {
+        const savedSpans = [...spans];
         el.innerHTML = '';
-        el.appendChild(spanIcon);
-        const textNode = document.createTextNode(' ' + t[key]);
-        el.appendChild(textNode);
+        savedSpans.forEach(s => el.appendChild(s));
+        el.appendChild(document.createTextNode(' ' + t[key]));
       } else {
         el.textContent = t[key];
       }
@@ -1367,6 +1367,15 @@ $('#btn-hu-details-close').onclick = () => {
 
 // Click on compact column labels (Projects/Sprints) closes the drawer
 $('.dashboard-grid').addEventListener('click', (e) => {
+  const vIcon = e.target.closest('.col-v-collapse-icon');
+  if (vIcon) {
+    const col = vIcon.closest('.dash-col');
+    if (col) {
+      col.classList.toggle('v-collapsed');
+      vIcon.textContent = col.classList.contains('v-collapsed') ? '↓' : '—';
+    }
+    return;
+  }
   const icon = e.target.closest('.col-collapse-icon');
   if (icon) {
     const col = icon.closest('.dash-col');
