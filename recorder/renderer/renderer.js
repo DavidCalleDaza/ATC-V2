@@ -716,7 +716,9 @@ async function renderHus() {
     el.setAttribute('draggable', 'true');
     
     const infoSpan = document.createElement('span');
-    infoSpan.innerHTML = `<strong>${hu.id}</strong>`;
+    const huPrefix = hu.id.replace(/\d+$/, '');
+    const huNumber = hu.id.match(/\d+$/)?.[0] || hu.id;
+    infoSpan.innerHTML = `<strong><span class="hu-prefix">${huPrefix}</span>${huNumber}</strong>`;
     el.appendChild(infoSpan);
 
     const badgeSpan = document.createElement('span');
@@ -3297,6 +3299,11 @@ $$('.tab-detach').forEach(icon => {
 // When a detached window is closed, restore its tab in the main window
 window.api.onTabDetachedClosed(({ tabId }) => {
   $(`#tab-${tabId}`).classList.remove('hidden');
+});
+
+// ── Sidebar Toggle (Hamburger Menu) ────────────────────────────────────────
+$('#btn-sidebar-toggle').addEventListener('click', () => {
+  $('#sidebar-canvas').classList.toggle('collapsed');
 });
 
 // ── Init ────────────────────────────────────────────────────────────────────

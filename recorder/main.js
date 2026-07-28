@@ -1509,6 +1509,13 @@ function createWindow() {
   // ── Destroy overlay when the main window is closed ──────────────────────────
   win.on('close', () => {
     closeOverlayWindow();
+    // Close all detached windows
+    for (const [tabId, detachedWin] of detachedWindows) {
+      if (detachedWin && !detachedWin.isDestroyed()) {
+        detachedWin.destroy();
+      }
+    }
+    detachedWindows.clear();
     if (currentFfmpegProc) {
       try { currentFfmpegProc.stdin.write('q\n'); } catch(e) {}
       currentFfmpegProc = null;
