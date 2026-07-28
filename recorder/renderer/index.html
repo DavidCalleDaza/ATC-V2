@@ -16,10 +16,10 @@
       <h3 style="font-size: 16px; color: var(--accent-color); margin-bottom: 5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;" data-i18n="sidebar-actions-title">Actions</h3>
       <div id="sidebar-actions-container" style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: flex-start; padding-top: 10px;">
         <button id="btn-upload-files" class="btn btn-secondary w-full hidden" data-i18n="btn-upload" style="width: 100%;">Attach / Upload Files</button>
-        <button id="btn-exploratory" class="btn btn-secondary w-full" data-i18n="btn-exploratory" style="width: 100%; margin-top: 5px;">🔍 Exploratory Testing</button>
-        <button id="btn-parse-excel" class="btn btn-secondary w-full hidden" data-i18n="btn-parse-excel" style="width: 100%; margin-top: 5px;">📋 Parse Excel</button>
-        <button id="btn-organize-insumos" class="btn btn-secondary w-full hidden" data-i18n="btn-organize-insumos" style="width: 100%; margin-top: 5px;">📦 Insumos</button>
-        <button id="btn-generate-evidence" class="btn btn-secondary w-full hidden" data-i18n="btn-generate-evidence" style="width: 100%; margin-top: 5px;">📄 Generate Evidence</button>
+        <button id="btn-exploratory" class="btn btn-secondary w-full" data-i18n="btn-exploratory" style="width: 100%; margin-top: 5px;">Exploratory Testing</button>
+        <button id="btn-parse-excel" class="btn btn-secondary w-full hidden" data-i18n="btn-parse-excel" style="width: 100%; margin-top: 5px;">Parse Excel</button>
+        <button id="btn-organize-insumos" class="btn btn-secondary w-full hidden" data-i18n="btn-organize-insumos" style="width: 100%; margin-top: 5px;">Organize Supplies</button>
+        <button id="btn-generate-evidence" class="btn btn-secondary w-full hidden" data-i18n="btn-generate-evidence" style="width: 100%; margin-top: 5px;">Generate Evidence</button>
         <button id="btn-start-flow" class="btn btn-primary w-full hidden" data-i18n="btn-start-flow" style="width: 100%; margin-top: 5px;">➜ Go to Record Evidences</button>
       </div>
 
@@ -71,7 +71,7 @@
           Dashboard <span class="tab-detach" data-detach="dashboard" title="Open in new window">⧉</span>
         </button>
         <button id="tab-explorer" class="tab-btn hidden" data-view="exploratory">
-          🔍 Explorer Testing <span class="tab-detach" data-detach="exploratory" title="Open in new window">⧉</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Explorer Testing <span class="tab-detach" data-detach="exploratory" title="Open in new window">⧉</span>
         </button>
       </div>
 
@@ -87,8 +87,9 @@
               <div class="dash-col-header">
                 <h3 data-i18n="col-projects">Projects <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
                 <div style="display: flex; gap: 6px;">
-                  <button id="btn-import-project" class="btn btn-small btn-secondary" data-i18n="btn-import-project" title="Import project from ZIP or folder">📥</button>
-                  <button id="btn-add-project" class="btn btn-small btn-primary" data-i18n="btn-new">+ New</button>
+                  <button id="btn-import-project" class="btn btn-small btn-secondary" title="Import project from ZIP or folder"></button>
+                  <button id="btn-export-project" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
+                  <button id="btn-add-project" class="btn btn-small btn-primary" title="New project"></button>
                 </div>
               </div>
               <div class="dash-list" id="dash-projects-list">Loading...</div>
@@ -98,7 +99,10 @@
             <div class="dash-col">
               <div class="dash-col-header">
                 <h3 data-i18n="col-sprints">Sprints <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
-                <button id="btn-add-sprint" class="btn btn-small btn-primary hidden" data-i18n="btn-new">+ New</button>
+                <div style="display: flex; gap: 6px;">
+                  <button id="btn-export-sprint" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
+                  <button id="btn-add-sprint" class="btn btn-small btn-primary hidden" title="New sprint"></button>
+                </div>
               </div>
               <div class="dash-list" id="dash-sprints-list">Select a project...</div>
             </div>
@@ -107,7 +111,10 @@
             <div class="dash-col flex-2">
               <div class="dash-col-header">
                 <h3 data-i18n="col-hus">User Stories <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
-                <button id="btn-add-hu" class="btn btn-small btn-primary hidden" data-i18n="btn-new-hu">+ New HU</button>
+                <div style="display: flex; gap: 6px;">
+                  <button id="btn-export-hu" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
+                  <button id="btn-add-hu" class="btn btn-small btn-primary hidden" title="New User Story"></button>
+                </div>
               </div>
               <div class="dash-list" id="dash-hus-list">Select a sprint...</div>
             </div>
@@ -116,6 +123,7 @@
             <div class="dash-col flex-2">
               <div class="dash-col-header">
                 <h3 data-i18n="col-cps">Test Cases <span class="col-v-collapse-icon">—</span> <span class="col-collapse-icon">│</span></h3>
+                <button id="btn-export-cp" class="btn btn-small btn-secondary hidden" title="Export project as ZIP"></button>
               </div>
               <div class="dash-list" id="dash-cps-list">Select a User Story...</div>
             </div>
@@ -155,7 +163,7 @@
 
           <!-- Video Drop & Select -->
           <div id="video-drag-zone" style="flex: 1; border: 2px dashed var(--border-color); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; cursor: pointer; background: rgba(22, 27, 34, 0.5); transition: border-color 0.2s;">
-            <span style="font-size: 32px; margin-bottom: 10px;">🎥</span>
+            <span style="margin-bottom: 10px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
             <p style="font-size: 13px; color: #8b949e; margin-bottom: 10px;" data-i18n="exp-drag-desc">Drag exploratory video here or click to browse</p>
             <button class="btn btn-small btn-secondary" data-i18n="exp-select-btn">Browse Video</button>
           </div>
@@ -237,7 +245,7 @@
           <div id="image-controls-panel" class="hidden" style="background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 13px; font-weight: 600;">🖼️ Image View</span>
+                <span style="font-size: 13px; font-weight: 600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Image View</span>
                 <span id="image-view-info" style="font-size: 11px; color: #8b949e;"></span>
               </div>
               <button id="btn-back-to-video" class="btn btn-small btn-secondary">◀ Back to Video</button>
@@ -261,7 +269,7 @@
             <!-- Actions -->
             <div style="display: flex; gap: 8px;">
               <button id="btn-image-clear-annotations" class="btn btn-small btn-secondary" style="flex: 1;">Clear All</button>
-              <button id="btn-image-save" class="btn btn-small btn-primary" style="flex: 1;">💾 Save Changes</button>
+              <button id="btn-image-save" class="btn btn-small btn-primary" style="flex: 1;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Changes</button>
             </div>
           </div>
         </div>
@@ -298,8 +306,8 @@
 
           <!-- Export Actions -->
           <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <button id="btn-exp-trim-segment" class="btn btn-primary w-full" data-i18n="exp-btn-trim" disabled>✂ Trim & Save Segment</button>
-            <button id="btn-exp-save-frame" class="btn btn-secondary w-full" data-i18n="exp-btn-frame" disabled>📸 Save Annotated Screenshot</button>
+            <button id="btn-exp-trim-segment" class="btn btn-primary w-full" data-i18n="exp-btn-trim" disabled>Trim & Save Segment</button>
+            <button id="btn-exp-save-frame" class="btn btn-secondary w-full" data-i18n="exp-btn-frame" disabled>Save Annotated Screenshot</button>
           </div>
         </div>
       </div>
@@ -392,7 +400,7 @@
                 <span>⏹</span> <span data-i18n="btn-stop-recording">Stop Recording</span>
               </button>
               <button id="btn-discard-recording-media" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: bold;">
-                <span>❌</span> <span data-i18n="btn-discard-recording">Discard</span>
+                <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> <span data-i18n="btn-discard-recording">Discard</span>
               </button>
             </div>
           </div>
@@ -501,10 +509,10 @@
         <div>
           <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 5px;" data-i18n="exp-save-type">Type of Finding</label>
           <select id="exp-save-type-select" style="width: 100%; min-width: auto; padding: 6px; height: 32px; border-radius: 6px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);">
-            <option value="bug">🐛 Bug / Defect</option>
-            <option value="feature">✨ User Story functionality</option>
-            <option value="testcase">📋 Test Case Evidence</option>
-            <option value="general">📝 General Observation</option>
+            <option value="bug"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg> Bug / Defect</option>
+            <option value="feature"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> User Story functionality</option>
+            <option value="testcase"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Test Case Evidence</option>
+            <option value="general"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> General Observation</option>
           </select>
         </div>
 
@@ -532,10 +540,10 @@
         <p style="font-size: 14px; color: var(--text-color); line-height: 1.5;" data-i18n="import-choice-desc">How would you like to import the project?</p>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <button id="btn-import-zip" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; font-size: 14px; font-weight: 600;">
-            <span>📦</span> <span data-i18n="import-zip-btn">ZIP Archive</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg></span> <span data-i18n="import-zip-btn">ZIP Archive</span>
           </button>
           <button id="btn-import-folder" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; font-size: 14px; font-weight: 600;">
-            <span>📁</span> <span data-i18n="import-folder-btn">System Folder</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span> <span data-i18n="import-folder-btn">System Folder</span>
           </button>
         </div>
       </div>
@@ -545,6 +553,7 @@
     </div>
   </div>
 
+  <script src="icons.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

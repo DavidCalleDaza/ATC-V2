@@ -400,6 +400,30 @@ ipcMain.handle('import-project', async (_event, { source, type }) => {
   }
 });
 
+ipcMain.handle('select-export-path', async (_event, defaultName) => {
+  const result = await dialog.showSaveDialog({
+    defaultPath: defaultName,
+    filters: [{ name: 'ZIP Archives', extensions: ['zip'] }]
+  });
+  return result.canceled ? null : result.filePath;
+});
+
+ipcMain.handle('export-project', async (_event, { project, destPath }) => {
+  try {
+    const projectDir = path.join(BASE_DIR, 'projects', project);
+    if (!fs.existsSync(projectDir)) {
+      return { success: false, error: `Project "${project}" not found` };
+    }
+    const zip = new AdmZip();
+    zip.addLocalFolder(projectDir, project);
+    zip.writeZip(destPath);
+    return { success: true, path: destPath };
+  } catch (err) {
+    console.error('[Export Project] error:', err);
+    return { success: false, error: err.message };
+  }
+});
+
 ipcMain.handle('upload-file', async (_event, { project, sprint, huName, filePaths }) => {
   try {
     const dir = path.join(BASE_DIR, 'projects', project, sprint, huName);

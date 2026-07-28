@@ -5,24 +5,22 @@ const translations = {
     "app-subtitle": "Synchronized Evidence Recorder",
     "lang-label": "Language:",
     "phase0-title": "0. Projects Dashboard",
-    "col-projects": "Projects",
+    "col-projects": "Projects <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-projects": "Project Detail",
-    "btn-new": "+ New",
-    "col-sprints": "Sprints",
+    "col-sprints": "Sprints <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-sprints": "Sprint Detail",
-    "col-hus": "User Stories",
+    "col-hus": "User Stories <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-hus": "User Story Detail",
-    "col-cps": "Test Cases",
-    "btn-new-hu": "+ New HU",
+    "col-cps": "Test Cases <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "status-select-project": "Select a project...",
     "status-select-sprint": "Select a sprint...",
     "status-no-hus": "No User Stories in this sprint.",
     "status-excel-label": "Design Excel:",
     "status-word-label": "Word Template:",
     "status-audio-label": "Audio Guide:",
-    "status-found": "✔ File OK",
+    "status-found": `${iconCheck(12)} File OK`,
     "status-missing": "Missing",
-    "status-generated": "✔ Generated",
+    "status-generated": `${iconCheck(12)} Generated`,
     "btn-upload": "Attach / Upload Files",
     "btn-start-flow": "➜ Go to Record Evidences",
     "phase1-title": "1. Prepare Audio Guide",
@@ -64,10 +62,10 @@ const translations = {
     "modal-new-hu": "New User Story",
     "input-placeholder-name": "Enter name...",
     "window-title": "Automatic test case — Evidence Recorder",
-    "btn-exploratory": "🔍 Exploratory Testing",
-    "btn-parse-excel": "📋 Parse Excel",
-    "btn-organize-insumos": "📦 Organize Supplies",
-    "btn-generate-evidence": "📄 Generate Evidence",
+    "btn-exploratory": `${iconSearch(16)} Exploratory Testing`,
+    "btn-parse-excel": `${iconClipboard(16)} Parse Excel`,
+    "btn-organize-insumos": `${iconPackage(16)} Organize Supplies`,
+    "btn-generate-evidence": `${iconDocument(16)} Generate Evidence`,
     "phase-exploratory-title": "Exploratory Testing Workspace",
     "exp-project": "Project",
     "exp-sprint": "Sprint",
@@ -81,8 +79,8 @@ const translations = {
     "exp-annotations-list": "Marked Elements",
     "exp-clear-btn": "Clear All",
     "exp-no-annotations": "No marked elements yet. Draw on video to add.",
-    "exp-btn-trim": "✂ Trim & Save Segment",
-    "exp-btn-frame": "📸 Save Annotated Screenshot",
+    "exp-btn-trim": `${iconScissors(16)} Trim & Save Segment`,
+    "exp-btn-frame": `${iconCamera(16)} Save Annotated Screenshot`,
     "exp-save-title": "Save Exploratory Evidence",
     "exp-save-hu": "Select Destination User Story (HU)",
     "exp-new-hu-label": "Create New User Story (HU)",
@@ -91,7 +89,6 @@ const translations = {
     "import-choice-desc": "How would you like to import the project?",
     "import-zip-btn": "ZIP Archive (physical compressed file)",
     "import-folder-btn": "System Folder (physical folder directory)",
-    "btn-import-project": "Import Project",
     "cp-table-id": "CP ID",
     "cp-table-name": "Test Case Name",
     "cp-table-result": "Expected Result",
@@ -148,24 +145,22 @@ const translations = {
     "app-subtitle": "Grabador Sincronizado de Evidencias",
     "lang-label": "Idioma:",
     "phase0-title": "0. Dashboard de Proyectos",
-    "col-projects": "Proyectos",
+    "col-projects": "Proyectos <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-projects": "Detalle Proyectos",
-    "btn-new": "+ Nuevo",
-    "col-sprints": "Sprints",
+    "col-sprints": "Sprints <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-sprints": "Detalle Sprints",
-    "col-hus": "Historias de Usuario",
+    "col-hus": "Historias de Usuario <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "detail-title-hus": "Detalle Historias de Usuario",
-    "col-cps": "Casos de Prueba",
-    "btn-new-hu": "+ Nueva HU",
+    "col-cps": "Casos de Prueba <span class=\"col-v-collapse-icon\">—</span> <span class=\"col-collapse-icon\">│</span>",
     "status-select-project": "Selecciona un proyecto...",
     "status-select-sprint": "Selecciona un sprint...",
     "status-no-hus": "No hay HUs en este sprint.",
     "status-excel-label": "Excel de Diseño:",
     "status-word-label": "Word Plantilla:",
     "status-audio-label": "Audio-Guía:",
-    "status-found": "✔ Archivo OK",
+    "status-found": `${iconCheck(12)} Archivo OK`,
     "status-missing": "Falta",
-    "status-generated": "✔ Generado",
+    "status-generated": `${iconCheck(12)} Generado`,
     "btn-upload": "Adjuntar / Subir Archivos",
     "btn-start-flow": "➜ Ir a Grabar Evidencias",
     "phase1-title": "1. Preparar Audio-Guía",
@@ -207,10 +202,10 @@ const translations = {
     "modal-new-hu": "Nueva Historia (HU)",
     "input-placeholder-name": "Escribe aquí...",
     "window-title": "Automatic test case — Grabador de Evidencias",
-    "btn-exploratory": "🔍 Pruebas Exploratorias",
-    "btn-parse-excel": "📋 Parsear Excel",
-    "btn-organize-insumos": "📦 Organizar Insumos",
-    "btn-generate-evidence": "📄 Generar Evidencia",
+    "btn-exploratory": `${iconSearch(16)} Pruebas Exploratorias`,
+    "btn-parse-excel": `${iconClipboard(16)} Parsear Excel`,
+    "btn-organize-insumos": `${iconPackage(16)} Organizar Insumos`,
+    "btn-generate-evidence": `${iconDocument(16)} Generar Evidencia`,
     "phase-exploratory-title": "Espacio de Trabajo de Pruebas Exploratorias",
     "exp-project": "Proyecto",
     "exp-sprint": "Sprint",
@@ -224,8 +219,8 @@ const translations = {
     "exp-annotations-list": "Elementos Marcados",
     "exp-clear-btn": "Limpiar Todo",
     "exp-no-annotations": "No hay elementos marcados aún. Dibuja sobre el video para agregar.",
-    "exp-btn-trim": "✂ Recortar y Guardar Segmento",
-    "exp-btn-frame": "📸 Guardar Captura Anotada",
+    "exp-btn-trim": `${iconScissors(16)} Recortar y Guardar Segmento`,
+    "exp-btn-frame": `${iconCamera(16)} Guardar Captura Anotada`,
     "exp-save-title": "Guardar Evidencia Exploratoria",
     "exp-save-hu": "Selecciona Historia de Usuario (HU) Destino",
     "exp-new-hu-label": "Crear Nueva Historia de Usuario (HU)",
@@ -235,7 +230,6 @@ const translations = {
     "import-choice-desc": "¿Cómo desea importar el proyecto?",
     "import-zip-btn": "Archivo ZIP (comprimido físico)",
     "import-folder-btn": "Carpeta del sistema (directorio físico)",
-    "btn-import-project": "Importar Proyecto",
     "cp-table-id": "ID CP",
     "cp-table-name": "Nombre del Caso de Prueba",
     "cp-table-result": "Resultado Esperado",
@@ -296,15 +290,7 @@ function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (t[key]) {
-      const spans = el.querySelectorAll('span');
-      if (spans.length > 0) {
-        const savedSpans = [...spans];
-        el.innerHTML = '';
-        savedSpans.forEach(s => el.appendChild(s));
-        el.appendChild(document.createTextNode(' ' + t[key]));
-      } else {
-        el.textContent = t[key];
-      }
+      el.innerHTML = t[key];
     }
   });
 
@@ -534,6 +520,8 @@ async function renderProjects() {
   });
 
   $('#btn-add-sprint').classList.toggle('hidden', !state.project);
+  $('#btn-export-project').classList.toggle('hidden', !state.project);
+  $('#btn-export-sprint').classList.toggle('hidden', !state.project);
   $('#btn-organize-insumos').classList.toggle('hidden', !state.project);
   $('#btn-generate-evidence').classList.toggle('hidden', !state.project);
   $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
@@ -675,6 +663,7 @@ async function renderSprints() {
   });
 
   $('#btn-add-hu').classList.toggle('hidden', !state.sprint);
+  $('#btn-export-hu').classList.toggle('hidden', !state.sprint);
   $('#btn-parse-excel').classList.toggle('hidden', !state.sprint);
   makeSortable('dash-sprints-list', 'sprint', (newOrder) => {
     localStorage.setItem('sprintsOrder_' + state.project, JSON.stringify(newOrder));
@@ -835,6 +824,8 @@ function renderCps() {
   const t = translations[currentLang];
   const list = $('#dash-cps-list');
   list.innerHTML = '';
+
+  $('#btn-export-cp').classList.toggle('hidden', !state.selectedHu);
 
   if (!state.selectedHu) {
     list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${t['cp-no-hu']}</span>`;
@@ -1120,9 +1111,9 @@ async function showCpDetail(cp) {
   const linkedFiles = [];
   if (state.selectedHu) {
     const hu = state.selectedHu;
-    if (hu.hasExcel) linkedFiles.push({ type: 'Excel', name: hu.name.match(/\.xlsx$/) ? hu.name : `${hu.id}_design.xlsx`, icon: '📊' });
-    if (hu.hasWord) linkedFiles.push({ type: 'Word', name: `${cp.id}_evidence.docx`, icon: '📄' });
-    if (hu.hasAudio) linkedFiles.push({ type: 'Audio Guide', name: `${hu.id}_guide.wav`, icon: '🔊' });
+    if (hu.hasExcel) linkedFiles.push({ type: 'Excel', name: hu.name.match(/\.xlsx$/) ? hu.name : `${hu.id}_design.xlsx`, icon: iconChart(14) });
+    if (hu.hasWord) linkedFiles.push({ type: 'Word', name: `${cp.id}_evidence.docx`, icon: iconDocument(14) });
+    if (hu.hasAudio) linkedFiles.push({ type: 'Audio Guide', name: `${hu.id}_guide.wav`, icon: iconAudio(14) });
   }
 
   $('#right-drawer-content').innerHTML = `
@@ -1255,7 +1246,7 @@ async function showHuDetails(hu) {
 
   $('#right-drawer-content').innerHTML = `
     <h4 style="color: #fff; font-size: 15px; word-break: break-all; margin-bottom: 6px;">${hu.id}: ${hu.name}</h4>
-    ${shortPath ? `<div style="font-size: 10px; color: #8b949e; margin-bottom: 10px; word-break: break-all;">📁 ${shortPath}</div>` : ''}
+    ${shortPath ? `<div style="font-size: 10px; color: #8b949e; margin-bottom: 10px; word-break: break-all;">${iconFolder(10)} ${shortPath}</div>` : ''}
 
     <div style="display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px;">
       <h5 style="font-size: 12px; color: var(--accent-color); margin: 0 0 4px 0;">${t['detail-summary']}</h5>
@@ -1495,6 +1486,40 @@ $('#btn-add-project').onclick = () => openModal(translations[currentLang]['modal
   renderProjects();
 });
 
+// Set button icons (icon-only buttons)
+$('#btn-import-project').innerHTML = iconImport(14);
+$('#btn-export-project').innerHTML = iconExport(14);
+$('#btn-export-sprint').innerHTML = iconExport(14);
+$('#btn-export-hu').innerHTML = iconExport(14);
+$('#btn-export-cp').innerHTML = iconExport(14);
+$('#btn-add-project').innerHTML = iconPlus(12);
+$('#btn-add-sprint').innerHTML = iconPlus(12);
+$('#btn-add-hu').innerHTML = iconPlus(12);
+
+// Export Project
+async function exportCurrentProject() {
+  if (!state.project) return;
+  const defaultName = `${state.project}.zip`;
+  const destPath = await window.api.selectExportPath(defaultName);
+  if (!destPath) return;
+  const res = await window.api.exportProject({ project: state.project, destPath });
+  if (res.success) {
+    showDarkAlert(
+      currentLang === 'es' ? 'Exportación Exitosa' : 'Export Successful',
+      currentLang === 'es'
+        ? `Proyecto exportado a:\n${res.path}`
+        : `Project exported to:\n${res.path}`
+    );
+  } else {
+    alert(res.error);
+  }
+}
+
+$('#btn-export-project').onclick = exportCurrentProject;
+$('#btn-export-sprint').onclick = exportCurrentProject;
+$('#btn-export-hu').onclick = exportCurrentProject;
+$('#btn-export-cp').onclick = exportCurrentProject;
+
 // Import Project
 const importChoiceModal = $('#modal-import-choice-overlay');
 
@@ -1631,7 +1656,7 @@ $('#btn-generate-evidence').addEventListener('click', async () => {
   openConfirmModal(t['btn-generate-evidence'], confirmMsg, async () => {
     const btn = $('#btn-generate-evidence');
     const originalText = btn.textContent;
-    btn.textContent = currentLang === 'es' ? '⏳ Generando...' : '⏳ Generating...';
+    btn.innerHTML = currentLang === 'es' ? `${iconLoading(14)} Generando...` : `${iconLoading(14)} Generating...`;
     btn.disabled = true;
     try {
       const res = await window.api.generateEvidence(scopeOpts);
@@ -1671,13 +1696,13 @@ async function loadHuReview(hu) {
   
   $('#sidebar-hu-title').textContent = `${hu.id}: ${hu.name}`;
   $('#sidebar-status-excel').className = `badge ${hu.hasExcel ? 'ok' : 'fail'}`;
-  $('#sidebar-status-excel').textContent = hu.hasExcel ? t['status-found'] : t['status-missing'];
+  $('#sidebar-status-excel').innerHTML = hu.hasExcel ? t['status-found'] : t['status-missing'];
   
   $('#sidebar-status-word').className = `badge ${hu.hasWord ? 'ok' : 'fail'}`;
-  $('#sidebar-status-word').textContent = hu.hasWord ? t['status-found'] : t['status-missing'];
+  $('#sidebar-status-word').innerHTML = hu.hasWord ? t['status-found'] : t['status-missing'];
   
   $('#sidebar-status-audio').className = `badge ${hu.hasAudio ? 'ok' : 'fail'}`;
-  $('#sidebar-status-audio').textContent = hu.hasAudio ? t['status-generated'] : t['status-missing'];
+  $('#sidebar-status-audio').innerHTML = hu.hasAudio ? t['status-generated'] : t['status-missing'];
   
   const pnl = $('#audio-status-panel');
   const preview = $('#cp-script-preview');
@@ -2143,14 +2168,14 @@ async function finalizeRecording() {
 
   if (res.success) {
     $('#done-status').innerHTML = `
-      <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+      <div style="margin-bottom: 20px;">${iconSuccess(40)}</div>
       <h3>${translations[currentLang]['save-success']}</h3>
       <p>File: <strong>${res.videoFile}</strong></p>
       <p>${currentLang === 'es' ? `Se registraron ${state.cpTimestamps.length} Casos de Prueba durante la narración.` : `Registered ${state.cpTimestamps.length} Test Cases during narration.`}</p>
     `;
   } else {
     $('#done-status').innerHTML = `
-      <div style="font-size: 40px; color: #f85149; margin-bottom: 20px;">⚠️</div>
+      <div style="margin-bottom: 20px;">${iconWarning(40)}</div>
       <h3>${translations[currentLang]['save-error']}</h3>
       <p style="color: #f85149">${res.error}</p>
     `;
@@ -2385,10 +2410,10 @@ async function renderEvidenceList() {
   noEvidence.classList.add('hidden');
 
   const typeLabels = {
-    bug: '🐛 Bug',
-    feature: '✨ Feature',
-    testcase: '📋 Test Case',
-    general: '📝 General'
+    bug: `${iconBug(14)} Bug`,
+    feature: `${iconFeature(14)} Feature`,
+    testcase: `${iconClipboard(14)} Test Case`,
+    general: `${iconNote(14)} General`
   };
 
   res.grouped.forEach(group => {
@@ -2402,8 +2427,8 @@ async function renderEvidenceList() {
     const hasScreenshot = !!group.screenshot;
 
     let icons = '';
-    if (hasVideo) icons += '<span title="Video clip">🎬</span> ';
-    if (hasScreenshot) icons += '<span title="Screenshot">🖼️</span> ';
+    if (hasVideo) icons += `<span title="Video clip">${iconClapperboard(14)}</span> `;
+    if (hasScreenshot) icons += `<span title="Screenshot">${iconImage(14)}</span> `;
 
     let sizeStr = '';
     if (hasVideo) {
@@ -2417,7 +2442,7 @@ async function renderEvidenceList() {
         <div class="evidence-item-meta">${timeStr} ${sizeStr ? '· ' + sizeStr : ''}</div>
       </div>
       <div class="evidence-item-actions">
-        ${hasScreenshot ? `<button class="btn btn-small btn-secondary evidence-view-btn" title="View evidence">👁</button>` : ''}
+        ${hasScreenshot ? `<button class="btn btn-small btn-secondary evidence-view-btn" title="View evidence">${iconEye(14)}</button>` : ''}
         ${hasVideo ? `<button class="btn btn-small btn-primary evidence-load-btn" title="Load clip into editor">▶</button>` : ''}
         <button class="btn btn-small btn-secondary evidence-delete-btn" title="Delete evidence">✕</button>
       </div>
@@ -2505,7 +2530,7 @@ async function openEvidenceImageView(group) {
   $('#btn-exp-save-frame').classList.add('hidden');
 
   // Update info
-  const typeLabels = { bug: '🐛 Bug', feature: '✨ Feature', testcase: '📋 Test Case', general: '📝 General' };
+  const typeLabels = { bug: `${iconBug(14)} Bug`, feature: `${iconFeature(14)} Feature`, testcase: `${iconClipboard(14)} Test Case`, general: `${iconNote(14)} General` };
   $('#image-view-info').textContent = `${typeLabels[group.type] || group.type} — ${group.screenshot.name}`;
 
   // Load metadata
@@ -2609,7 +2634,7 @@ $('#btn-image-save').addEventListener('click', async () => {
   // Show brief confirmation
   const btn = $('#btn-image-save');
   const origText = btn.textContent;
-  btn.textContent = '✅ Saved!';
+  btn.innerHTML = `${iconCheck(14)} Saved!`;
   btn.disabled = true;
   setTimeout(() => {
     btn.textContent = origText;
@@ -3209,7 +3234,7 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
       if (!metaRes.success) throw new Error(metaRes.error);
       
       doneStatus.innerHTML = `
-        <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+        <div style="margin-bottom: 20px;">${iconSuccess(40)}</div>
         <h3>${currentLang === 'es' ? 'Recorte Guardado Correctamente' : 'Trim Saved Successfully'}</h3>
         <p>Video segment: <strong>${fileName}</strong></p>
         <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
@@ -3256,7 +3281,7 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
       if (!metaRes.success) throw new Error(metaRes.error);
       
       doneStatus.innerHTML = `
-        <div style="font-size: 40px; color: #2ea043; margin-bottom: 20px;">✅</div>
+        <div style="margin-bottom: 20px;">${iconSuccess(40)}</div>
         <h3>${currentLang === 'es' ? 'Captura Guardada Correctamente' : 'Screenshot Saved Successfully'}</h3>
         <p>Annotations: <strong>${metaRes.jsonName}</strong></p>
         <p>Screenshot: <strong>${metaRes.pngName}</strong></p>
@@ -3267,7 +3292,7 @@ $('#btn-exp-save-modal-confirm').addEventListener('click', async () => {
     console.error('Error saving exploratory evidence:', err);
     $('#btn-exp-continue-editing').classList.add('hidden');
     doneStatus.innerHTML = `
-      <div style="font-size: 40px; color: #f85149; margin-bottom: 20px;">⚠️</div>
+      <div style="margin-bottom: 20px;">${iconWarning(40)}</div>
       <h3>${currentLang === 'es' ? 'Error al procesar' : 'Error in processing'}</h3>
       <p style="color: #f85149">${err.message}</p>
     `;

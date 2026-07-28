@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('api', {
   selectProjectZip: () => ipcRenderer.invoke('select-project-zip'),
   selectProjectFolder: () => ipcRenderer.invoke('select-project-folder'),
   importProject: (data) => ipcRenderer.invoke('import-project', data),
+  selectExportPath: (defaultName) => ipcRenderer.invoke('select-export-path', defaultName),
+  exportProject: (data) => ipcRenderer.invoke('export-project', data),
   generateAudioGuide: (data) => ipcRenderer.invoke('generate-audio-guide', data),
   loadAudioGuide: (data) => ipcRenderer.invoke('load-audio-guide', data),
   getScreenSources: () => ipcRenderer.invoke('get-screen-sources'),
