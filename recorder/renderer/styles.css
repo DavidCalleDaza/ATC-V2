@@ -62,7 +62,7 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
 .done-status p { margin-bottom: 5px; color: #8b949e; }
 .done-status strong { color: var(--accent-color); }
 .w-full { width: 100%; }
-.dashboard-grid { display: flex; gap: 20px; flex: 1; min-height: 0; }
+.dashboard-grid { display: flex; flex-wrap: wrap; gap: 20px; flex: 1; min-height: 0; }
 .dash-col { flex: 1; display: flex; flex-direction: column; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
 .dash-col.flex-2 { flex: 1.5; }
 .dash-col-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); }
@@ -238,15 +238,29 @@ video#preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
   border-bottom: none;
 }
 
-/* ── Vertical Collapsed Column ── */
-.dash-col.v-collapsed {
-  align-self: flex-start;
+/* ── Horizontal Collapsed Column (—) ── */
+.dash-col.h-collapsed {
+  flex: 0 0 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
 }
-.dash-col.v-collapsed .dash-list {
-  display: none !important;
-}
-.dash-col.v-collapsed .dash-col-header {
+.dash-col.h-collapsed .dash-col-header {
   border-bottom: none;
+  padding: 8px 15px;
+}
+.dash-col.h-collapsed .dash-list {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 10px;
+  gap: 8px;
+}
+.dash-col.h-collapsed .dash-item {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 /* ── Exploratory Testing CSS ── */

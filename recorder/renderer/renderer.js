@@ -1371,8 +1371,8 @@ $('.dashboard-grid').addEventListener('click', (e) => {
   if (vIcon) {
     const col = vIcon.closest('.dash-col');
     if (col) {
-      col.classList.toggle('v-collapsed');
-      vIcon.textContent = col.classList.contains('v-collapsed') ? '↓' : '—';
+      col.classList.toggle('h-collapsed');
+      vIcon.textContent = col.classList.contains('h-collapsed') ? '↓' : '—';
     }
     return;
   }
