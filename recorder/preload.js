@@ -48,4 +48,8 @@ contextBridge.exposeInMainWorld('api', {
   onTabDetachedClosed: (cb) => ipcRenderer.on('tab-detached-closed', (_e, data) => cb(data)),
   saveRecordingContext: (data) => ipcRenderer.invoke('save-recording-context', data),
   getRecordingContext: () => ipcRenderer.invoke('get-recording-context'),
+  captureMarkFrame: () => ipcRenderer.invoke('capture-mark-frame'),
+  createMarkWindow: (data) => ipcRenderer.invoke('create-mark-window', data),
+  onOverlayStartMark: (cb) => ipcRenderer.on('overlay-start-mark', () => cb()),
+  onMarkSaved: (cb) => ipcRenderer.on('mark-saved', (_e, data) => cb(data)),
 });

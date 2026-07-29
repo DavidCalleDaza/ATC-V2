@@ -847,8 +847,14 @@ let currentFfmpegProc = null;
 let currentMp4Path = null;
 let currentHuId = null;
 let overlayWin = null;
+let markColor = '#f85149';
+let currentCropInfo = null;
+let currentDisplayId = null;
+let currentProject = null;
+let currentSprint = null;
+let currentHuName = null;
 
-function createOverlayWindow(crop, sourceId, displayId) {
+function createOverlayWindow(crop, sourceId, displayId, overlayMarkColor) {
   try {
     const { screen } = require('electron');
     if (overlayWin && !overlayWin.isDestroyed()) {
@@ -1116,6 +1122,7 @@ function createOverlayWindow(crop, sourceId, displayId) {
         <button class="ctrl-btn play"  id="btn-play"  title="Play">&#9654;</button>
         <button class="ctrl-btn pause" id="btn-pause" title="Pause">&#9646;&#9646;</button>
         <button class="ctrl-btn stop"  id="btn-stop"  title="Stop">&#9646;</button>
+        <button class="ctrl-btn mark"  id="btn-mark"  title="Mark region">&#9998;</button>
       </div>
     </div>
     <div id="text">● Grabando...</div>
@@ -1127,6 +1134,35 @@ function createOverlayWindow(crop, sourceId, displayId) {
     const sizeLabel = document.getElementById('size-label');
     let fontSize = 14;
     let isPaused = false;
+    let currentMarkColor = '#f85149';
+    let holdTimer = null;
+    let isHolding = false;
+
+    ipcRenderer.on('set-mark-color', (_e, color) => { currentMarkColor = color; });
+
+    function startMarkFlow() {
+      textEl.innerText = '✎ Mark mode: release & drag to select region';
+      ipcRenderer.send('overlay-start-mark');
+    }
+
+    document.getElementById('btn-mark').addEventListener('click', startMarkFlow);
+
+    document.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest('button')) return;
+      isHolding = true;
+      holdTimer = setTimeout(() => {
+        if (isHolding) startMarkFlow();
+      }, 1000);
+    });
+
+    document.addEventListener('mouseup', (e) => {
+      if (e.button !== 0) return;
+      isHolding = false;
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    });
+
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
 
     /* ── Font size ── */
     function setFontSize(s) {
@@ -1260,9 +1296,273 @@ ipcMain.on('overlay-control', (_event, action) => {
   }
 });
 
-ipcMain.handle('start-recording', async (_event, { project, sprint, huName, huId, crop, sourceId, displayId }) => {
+// ── Marking Flow ──────────────────────────────────────────────────────────────
+let markWin = null;
+let burstSavedPaths = [];
+let burstSeq = 0;
+let burstFolderName = '';
+let burstHuDir = '';
+let burstPendingCount = 0;
+let burstCompletePending = false;
+
+function sendBurstComplete() {
+  if (appWin && !appWin.isDestroyed()) {
+    appWin.webContents.send('mark-saved', { success: true, images: burstSavedPaths, burstFolder: burstFolderName });
+  }
+  burstSavedPaths = [];
+  burstSeq = 0;
+  burstFolderName = '';
+  burstHuDir = '';
+  burstCompletePending = false;
+}
+
+ipcMain.on('overlay-start-mark', () => {
+  if (appWin && !appWin.isDestroyed()) {
+    appWin.webContents.send('overlay-start-mark');
+  }
+});
+
+function closeMarkWindow() {
+  if (markWin && !markWin.isDestroyed()) {
+    markWin.close();
+  }
+  markWin = null;
+}
+
+ipcMain.handle('capture-mark-frame', async () => {
   try {
-    createOverlayWindow(crop, sourceId, displayId);
+    const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1920, height: 1080 } });
+    const source = currentDisplayId
+      ? sources.find(s => String(s.display_id) === String(currentDisplayId))
+      : sources[0];
+    if (!source) return { success: false, error: 'No screen source found' };
+    const size = source.thumbnail.getSize();
+    return {
+      success: true,
+      dataUrl: source.thumbnail.toDataURL(),
+      sourceWidth: size.width,
+      sourceHeight: size.height
+    };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('create-mark-window', async (_event, { dataUrl }) => {
+  try {
+    closeMarkWindow();
+    burstSavedPaths = [];
+    burstSeq = 0;
+    burstFolderName = `marks_burst_${Date.now()}`;
+    burstHuDir = path.join(BASE_DIR, 'projects', currentProject, currentSprint, currentHuName);
+    const { screen } = require('electron');
+    const allDisplays = screen.getAllDisplays();
+    let displayBounds = screen.getPrimaryDisplay().bounds;
+    if (currentDisplayId) {
+      const matched = allDisplays.find(d => String(d.id) === String(currentDisplayId));
+      if (matched) displayBounds = matched.bounds;
+    }
+
+    markWin = new BrowserWindow({
+      width: displayBounds.width,
+      height: displayBounds.height,
+      x: displayBounds.x,
+      y: displayBounds.y,
+      transparent: false,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      resizable: false,
+      backgroundColor: '#0d1117',
+      webPreferences: { nodeIntegration: true, contextIsolation: false }
+    });
+
+    const markHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#0d1117; font-family:sans-serif; user-select:none; cursor:crosshair; }
+  #bg { position:fixed; top:0; left:0; width:100%; height:100%; object-fit:contain; background:#000; }
+  .dim { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); pointer-events:none; z-index:1; }
+  #sel-rect { position:fixed; z-index:2; border:2px solid; pointer-events:none; display:none; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); }
+  .hint { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:3; color:#fff; font-size:13px; background:rgba(0,0,0,0.7); padding:8px 16px; border-radius:6px; pointer-events:none; text-align:center; }
+  .counter { position:fixed; top:10px; right:10px; z-index:4; color:#fff; font-size:14px; background:rgba(0,0,0,0.7); padding:6px 12px; border-radius:4px; pointer-events:none; }
+</style>
+</head>
+<body>
+  <img id="bg" src="">
+  <div class="dim"></div>
+  <div id="sel-rect"></div>
+  <div class="hint">&#9758; Left-click + drag to select region, release when done</div>
+  <div class="counter">Captures: <span id="burst-count">0</span></div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const bg = document.getElementById('bg');
+    const selRect = document.getElementById('sel-rect');
+    const burstCount = document.getElementById('burst-count');
+    let startX = 0, startY = 0, isDrawing = false;
+    let rect = { x:0, y:0, w:0, h:0 };
+    let lastBurstTime = 0;
+    let burstTotal = 0;
+
+    ipcRenderer.on('load-mark-image', (_e, { dataUrl: src, color }) => {
+      bg.src = src;
+      selRect.style.borderColor = color || '#f85149';
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      isDrawing = true;
+      startX = e.clientX; startY = e.clientY;
+      selRect.style.display = 'block';
+      selRect.style.left = startX + 'px';
+      selRect.style.top = startY + 'px';
+      selRect.style.width = '2px';
+      selRect.style.height = '2px';
+      rect = { x: startX, y: startY, w: 2, h: 2 };
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      const x = Math.min(startX, e.clientX);
+      const y = Math.min(startY, e.clientY);
+      const w = Math.abs(e.clientX - startX);
+      const h = Math.abs(e.clientY - startY);
+      selRect.style.left = x + 'px';
+      selRect.style.top = y + 'px';
+      selRect.style.width = w + 'px';
+      selRect.style.height = h + 'px';
+      rect = { x, y, w, h };
+      const now = Date.now();
+      if (now - lastBurstTime >= 200 && w >= 10 && h >= 10) {
+        lastBurstTime = now;
+        const b = bg.getBoundingClientRect();
+        const sx = bg.naturalWidth / b.width;
+        const sy = bg.naturalHeight / b.height;
+        const crop = {
+          x: Math.max(0, Math.round((rect.x - b.left) * sx)),
+          y: Math.max(0, Math.round((rect.y - b.top) * sy)),
+          w: Math.min(Math.round(rect.w * sx), bg.naturalWidth - Math.round((rect.x - b.left) * sx)),
+          h: Math.min(Math.round(rect.h * sy), bg.naturalHeight - Math.round((rect.y - b.top) * sy))
+        };
+        ipcRenderer.send('save-burst-frame', { crop });
+      }
+    });
+
+    document.addEventListener('mouseup', (e) => {
+      if (!isDrawing || e.button !== 0) return;
+      isDrawing = false;
+      if (burstTotal > 0 || (rect.w >= 5 && rect.h >= 5)) {
+        ipcRenderer.send('mark-burst-complete');
+      }
+      selRect.style.display = 'none';
+    });
+
+    ipcRenderer.on('burst-frame-saved', () => {
+      burstTotal++;
+      burstCount.textContent = burstTotal;
+    });
+
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') ipcRenderer.send('mark-burst-cancel'); });
+  <\/script>
+</body>
+</html>`;
+
+    markWin.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(markHtml));
+
+    return new Promise((resolve) => {
+      markWin.webContents.once('did-finish-load', () => {
+        markWin.webContents.send('load-mark-image', { dataUrl, color: markColor });
+        resolve({ success: true, burstFolder: burstFolderName });
+      });
+      markWin.on('closed', () => { markWin = null; });
+    });
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.on('save-burst-frame', async (_event, { crop }) => {
+  burstPendingCount++;
+  try {
+    const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1920, height: 1080 } });
+    const source = currentDisplayId
+      ? sources.find(s => String(s.display_id) === String(currentDisplayId))
+      : sources[0];
+    if (!source) return;
+    const fullDataUrl = source.thumbnail.toDataURL();
+    const fullImg = require('electron').nativeImage.createFromDataURL(fullDataUrl);
+
+    const cropped = fullImg.crop({ x: crop.x, y: crop.y, width: crop.w, height: crop.h });
+    if (cropped.isEmpty()) return;
+
+    const ts = Date.now();
+    const seq = ++burstSeq;
+    const fileName = `burst_${String(seq).padStart(3, '0')}_${ts}`;
+    const pngPath = path.join(burstHuDir, burstFolderName, `${fileName}.png`);
+    const jsonPath = path.join(burstHuDir, burstFolderName, `${fileName}.json`);
+
+    if (!fs.existsSync(path.join(burstHuDir, burstFolderName))) {
+      fs.mkdirSync(path.join(burstHuDir, burstFolderName), { recursive: true });
+    }
+
+    fs.writeFileSync(pngPath, cropped.toPNG());
+
+    const metadata = {
+      findingType: 'mark',
+      color: markColor,
+      crop: crop,
+      generated_at: new Date().toISOString()
+    };
+    fs.writeFileSync(jsonPath, JSON.stringify(metadata, null, 2));
+
+    burstSavedPaths.push({ imagePath: pngPath, jsonPath });
+
+    if (markWin && !markWin.isDestroyed()) {
+      markWin.webContents.send('burst-frame-saved');
+    }
+  } catch (err) {
+    console.error('[save-burst-frame]', err);
+  } finally {
+    burstPendingCount--;
+    if (burstCompletePending && burstPendingCount === 0) {
+      sendBurstComplete();
+    }
+  }
+});
+
+ipcMain.on('mark-burst-complete', () => {
+  closeMarkWindow();
+  if (burstPendingCount > 0) {
+    burstCompletePending = true;
+  } else {
+    sendBurstComplete();
+  }
+});
+
+ipcMain.on('mark-burst-cancel', () => {
+  closeMarkWindow();
+  burstSavedPaths = [];
+  burstSeq = 0;
+  burstFolderName = '';
+  burstHuDir = '';
+  burstPendingCount = 0;
+  burstCompletePending = false;
+});
+
+
+ipcMain.handle('start-recording', async (_event, { project, sprint, huName, huId, crop, sourceId, displayId, markColor: mc }) => {
+  try {
+    markColor = mc || '#f85149';
+    currentCropInfo = crop || null;
+    currentDisplayId = displayId || null;
+    currentProject = project;
+    currentSprint = sprint;
+    currentHuName = huName;
+    createOverlayWindow(crop, sourceId, displayId, markColor);
     const huDir = path.join(BASE_DIR, 'projects', project, sprint, huName);
     const ts = Date.now();
     const finalName = `evidence_${huId}_${ts}`;

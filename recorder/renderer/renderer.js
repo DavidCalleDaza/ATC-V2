@@ -334,6 +334,8 @@ const state = {
   videoTrack: null,
   mediaRecorder: null,
   recordedChunks: [],
+  markColor: '#f85149',
+  markImages: [],
 };
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
@@ -386,6 +388,28 @@ function fmtTime(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function renderMarksList() {
+  const container = $('#marks-list');
+  const count = $('#marks-count');
+  const empty = $('#marks-empty');
+  if (!container) return;
+  if (state.markImages.length === 0) {
+    container.innerHTML = '<span style="font-size: 11px; color: #8b949e;" id="marks-empty">No marks yet. Hold left-click on overlay >1s or click Mark button to capture.</span>';
+    if (count) count.textContent = '0';
+    return;
+  }
+  container.innerHTML = state.markImages.map((m, i) => {
+    const name = m.imagePath.split('/').pop() || `Mark ${i + 1}`;
+    const parent = m.imagePath.split('/').slice(-2, -1)[0] || '';
+    const label = parent.startsWith('marks_burst') ? `[Burst] ${name}` : name;
+    return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 4px;background:#161b22;border-radius:4px;">
+      <span style="color:#8b949e;min-width:18px;">#${i + 1}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c9d1d9;" title="${m.imagePath}">${label}</span>
+    </div>`;
+  }).join('');
+  if (count) count.textContent = String(state.markImages.length);
 }
 
 // ─── Drawer helpers (open/close + compact mode toggle) ──────────────────────
@@ -1717,7 +1741,8 @@ $('#btn-start-flow').onclick = async () => {
     project: state.project,
     sprint: state.sprint,
     huName: state.selectedHu.name,
-    huId: state.selectedHu.id
+    huId: state.selectedHu.id,
+    markColor: state.markColor
   });
   await window.api.createDetachedView('recorder');
 };
@@ -1994,6 +2019,7 @@ $('#btn-start-recording').addEventListener('click', async () => {
   state.cpTimestamps = [];
   state.elapsedTimeBeforePause = 0;
   state.recordingStartTime = performance.now();
+  state.markImages = [];
   
   $('.recording-dot').classList.remove('paused');
   startTimer();
@@ -2007,7 +2033,8 @@ $('#btn-start-recording').addEventListener('click', async () => {
     huId: state.selectedHu.id,
     crop: state.crop,
     sourceId: state.selectedSourceId,
-    displayId: state.selectedDisplayId
+    displayId: state.selectedDisplayId,
+    markColor: state.markColor
   });
  
   state.mediaRecorder.start(100);
@@ -2032,6 +2059,21 @@ $('#btn-start-recording').addEventListener('click', async () => {
       stopCurrentAudio();
       pauseTimer();
     }
+  });
+
+  // Listen for overlay mark requests
+  window.api.onOverlayStartMark(async () => {
+    const frame = await window.api.captureMarkFrame();
+    if (!frame) return;
+    await window.api.createMarkWindow({ dataUrl: frame.dataUrl, markColor: state.markColor });
+  });
+
+  // Listen for marks saved
+  window.api.onMarkSaved(({ images, burstFolder }) => {
+    if (images && Array.isArray(images)) {
+      images.forEach(img => state.markImages.push(img));
+    }
+    renderMarksList();
   });
 });
  
@@ -2544,6 +2586,18 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
     // Update active state on all swatches
     document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
     document.querySelectorAll(`.color-swatch[data-color="${color}"]`).forEach(s => s.classList.add('active'));
+  });
+});
+
+// Mark color picker handler (phase 2)
+document.querySelectorAll('.mark-swatch').forEach(swatch => {
+  swatch.addEventListener('click', (e) => {
+    const color = e.target.dataset.color;
+    state.markColor = color;
+    document.querySelectorAll('.mark-swatch').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll(`.mark-swatch[data-color="${color}"]`).forEach(s => s.classList.add('active'));
+    const label = $('#selected-mark-color-label');
+    if (label) label.textContent = color;
   });
 });
 
@@ -3410,6 +3464,7 @@ if (isDetachedWindow) {
       if (ctx) {
         state.project = ctx.project;
         state.sprint = ctx.sprint;
+        state.markColor = ctx.markColor || '#f85149';
         const hus = await window.api.getHus({ project: ctx.project, sprint: ctx.sprint });
         const hu = hus.find(h => h.id === ctx.huId || h.name === ctx.huName);
         if (hu) {

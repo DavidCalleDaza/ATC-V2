@@ -349,6 +349,18 @@
         </select>
       </div>
 
+      <div class="mark-color-selector" style="margin-top: 15px; display: flex; align-items: center; gap: 12px;">
+        <label style="font-size: 13px; color: #8b949e; white-space: nowrap;">Mark Color:</label>
+        <div class="color-options" style="display: flex; gap: 6px;">
+          <button class="mark-swatch active" data-color="#f85149" style="width: 24px; height: 24px; border-radius: 50%; background: #f85149; border: 2px solid transparent; cursor: pointer; transition: 0.15s;" title="Red"></button>
+          <button class="mark-swatch" data-color="#3fb950" style="width: 24px; height: 24px; border-radius: 50%; background: #3fb950; border: 2px solid transparent; cursor: pointer; transition: 0.15s;" title="Green"></button>
+          <button class="mark-swatch" data-color="#58a6ff" style="width: 24px; height: 24px; border-radius: 50%; background: #58a6ff; border: 2px solid transparent; cursor: pointer; transition: 0.15s;" title="Blue"></button>
+          <button class="mark-swatch" data-color="#d29922" style="width: 24px; height: 24px; border-radius: 50%; background: #d29922; border: 2px solid transparent; cursor: pointer; transition: 0.15s;" title="Yellow"></button>
+          <button class="mark-swatch" data-color="#bc8cff" style="width: 24px; height: 24px; border-radius: 50%; background: #bc8cff; border: 2px solid transparent; cursor: pointer; transition: 0.15s;" title="Purple"></button>
+        </div>
+        <span id="selected-mark-color-label" style="font-size: 12px; color: #f85149; font-weight: 600;">#f85149</span>
+      </div>
+
       <div class="region-preview-container">
         <img id="preview-image" style="width: 100%; max-height: 70vh; object-fit: contain; pointer-events: none;">
         <div id="crop-box" class="crop-box hidden">
@@ -412,10 +424,19 @@
         </div>
 
         <!-- Right: Script reference -->
-        <div class="recording-right">
+        <div class="recording-right" style="display: flex; flex-direction: column; gap: 10px;">
           <h3 data-i18n="script-ref-title">Reference Script</h3>
-          <div class="script-box" style="height: 350px; overflow-y: auto; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;">
+          <div class="script-box" style="flex: 1; overflow-y: auto; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;">
             <pre id="script-reference" style="white-space: pre-wrap; font-size: 13px; margin: 0; color: #c9d1d9; font-family: monospace;" data-i18n="script-ref-wait">Waiting... Select a block from the list to narrate.</pre>
+          </div>
+          <div id="marks-panel" style="border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h4 style="font-size: 13px; margin: 0; color: var(--text-color);">Captured Marks</h4>
+              <span id="marks-count" style="font-size: 11px; color: #8b949e;">0</span>
+            </div>
+            <div id="marks-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto;">
+              <span style="font-size: 11px; color: #8b949e;" id="marks-empty">No marks yet. Hold left-click on overlay &gt;1s or click Mark button to capture.</span>
+            </div>
           </div>
         </div>
       </div>
