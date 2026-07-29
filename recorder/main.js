@@ -89,57 +89,62 @@ ipcMain.handle('get-sprints', async (_event, project) => {
 });
 
 ipcMain.handle('get-hus', async (_event, { project, sprint }) => {
-  const sprintDir = path.join(BASE_DIR, 'projects', project, sprint);
-  if (!fs.existsSync(sprintDir)) return [];
+  try {
+    const sprintDir = path.join(BASE_DIR, 'projects', project, sprint);
+    if (!fs.existsSync(sprintDir)) return [];
 
-  const folders = fs.readdirSync(sprintDir, { withFileTypes: true })
-    .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')))
-    .map(e => {
-      const id = e.name.match(/HU-\d+/)?.[0] || e.name;
-      const huDir = path.join(sprintDir, e.name);
-      const wavPath = path.join(huDir, `${id}_guide.wav`);
-      const mdPath = path.join(huDir, `${id}_guide.md`);
-      
-      const files = fs.readdirSync(huDir);
-      const hasExcel = files.some(f => f.endsWith('.xlsx') && !f.startsWith('~$'));
-      const hasWord = files.some(f => f.endsWith('.docx') && !f.startsWith('~$'));
-      const hasAudio = fs.existsSync(wavPath) && fs.existsSync(mdPath);
+    const folders = fs.readdirSync(sprintDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')))
+      .map(e => {
+        const id = e.name.match(/HU-\d+/)?.[0] || e.name;
+        const huDir = path.join(sprintDir, e.name);
+        const wavPath = path.join(huDir, `${id}_guide.wav`);
+        const mdPath = path.join(huDir, `${id}_guide.md`);
+        
+        const files = fs.readdirSync(huDir);
+        const hasExcel = files.some(f => f.endsWith('.xlsx') && !f.startsWith('~$'));
+        const hasWord = files.some(f => f.endsWith('.docx') && !f.startsWith('~$'));
+        const hasAudio = fs.existsSync(wavPath) && fs.existsSync(mdPath);
 
-      const evidenceFiles = files.filter(f =>
-        /^exploratory_.*\.mp4$/.test(f) || /^finding_.*\.(png|json)$/.test(f)
-      );
+        const evidenceFiles = files.filter(f =>
+          /^exploratory_.*\.mp4$/.test(f) || /^finding_.*\.(png|json)$/.test(f)
+        );
 
-      let cpCount = 0, positiveCount = 0, negativeCount = 0;
-      const tcPath = path.join(huDir, 'test_cases.json');
-      if (fs.existsSync(tcPath)) {
-        try {
-          const tcs = JSON.parse(fs.readFileSync(tcPath, 'utf-8'));
-          cpCount = tcs.length;
-          positiveCount = tcs.filter(tc => tc.is_positive).length;
-          negativeCount = tcs.filter(tc => !tc.is_positive).length;
-        } catch (e) { /* skip corrupted */ }
-      }
+        let cpCount = 0, positiveCount = 0, negativeCount = 0;
+        const tcPath = path.join(huDir, 'test_cases.json');
+        if (fs.existsSync(tcPath)) {
+          try {
+            const tcs = JSON.parse(fs.readFileSync(tcPath, 'utf-8'));
+            cpCount = tcs.length;
+            positiveCount = tcs.filter(tc => tc.is_positive).length;
+            negativeCount = tcs.filter(tc => !tc.is_positive).length;
+          } catch (e) { /* skip corrupted */ }
+        }
 
-      let lastModified = '';
-      try { lastModified = fs.statSync(huDir).mtime.toISOString(); } catch (e) {}
+        let lastModified = '';
+        try { lastModified = fs.statSync(huDir).mtime.toISOString(); } catch (e) {}
 
-      return {
-        id,
-        name: e.name,
-        path: huDir,
-        hasAudio,
-        hasExcel,
-        hasWord,
-        fileCount: files.length,
-        evidenceCount: evidenceFiles.length,
-        lastModified,
-        cpCount,
-        positiveCount,
-        negativeCount
-      };
-    })
-    .sort((a, b) => a.id.localeCompare(b.id));
-  return folders;
+        return {
+          id,
+          name: e.name,
+          path: huDir,
+          hasAudio,
+          hasExcel,
+          hasWord,
+          fileCount: files.length,
+          evidenceCount: evidenceFiles.length,
+          lastModified,
+          cpCount,
+          positiveCount,
+          negativeCount
+        };
+      })
+      .sort((a, b) => a.id.localeCompare(b.id));
+    return folders;
+  } catch (err) {
+    console.error('[get-hus] Error reading HUs:', err);
+    return [];
+  }
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

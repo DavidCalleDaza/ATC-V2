@@ -361,6 +361,11 @@ function showPhase(name) {
     if (phases[k]) phases[k].classList.add('hidden');
   });
 
+  // Show the requested sub-phase (review/region/recording/done)
+  if (!isExplorer && name !== 'dashboard' && phases[name]) {
+    phases[name].classList.remove('hidden');
+  }
+
   // Dashboard vs Explorer: mutually exclusive tab content
   phases.dashboard.classList.toggle('hidden', isExplorer);
   phases.exploratory.classList.toggle('hidden', !isExplorer);
@@ -673,7 +678,13 @@ async function renderHus() {
     return; 
   }
   
-  state.hus = await window.api.getHus({ project: state.project, sprint: state.sprint });
+  try {
+    state.hus = await window.api.getHus({ project: state.project, sprint: state.sprint });
+  } catch (err) {
+    console.error('[renderHus] Error fetching HUs:', err);
+    state.hus = [];
+  }
+  if (!state.hus) state.hus = [];
   const savedOrder = JSON.parse(localStorage.getItem('husOrder_' + state.project + '_' + state.sprint) || '[]');
   if (savedOrder.length > 0) {
     state.hus.sort((a, b) => {
@@ -701,13 +712,6 @@ async function renderHus() {
     const huNumber = hu.id.match(/\d+$/)?.[0] || hu.id;
     infoSpan.innerHTML = `<strong><span class="hu-prefix">${huPrefix}</span>${huNumber}</strong>`;
     el.appendChild(infoSpan);
-
-    const badgeSpan = document.createElement('span');
-    badgeSpan.className = hu.hasAudio ? 'badge ok' : 'badge fail';
-    badgeSpan.textContent = hu.hasAudio ? 'Audio OK' : 'No Audio';
-    badgeSpan.style.marginLeft = '12px';
-    badgeSpan.style.marginRight = '10px';
-    el.appendChild(badgeSpan);
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'item-actions';
@@ -783,6 +787,14 @@ async function renderHus() {
     };
 
     el.appendChild(btnView);
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = hu.hasAudio ? 'badge ok' : 'badge fail';
+    badgeSpan.textContent = hu.hasAudio ? 'Audio OK' : 'No Audio';
+    badgeSpan.style.marginLeft = '10px';
+    badgeSpan.style.marginRight = '12px';
+    el.appendChild(badgeSpan);
+
     actionsDiv.appendChild(btnEdit);
     actionsDiv.appendChild(btnDelete);
     el.appendChild(actionsDiv);
@@ -842,8 +854,7 @@ function renderCps() {
     const infoSpan = document.createElement('span');
     infoSpan.style.cssText = 'display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;';
     infoSpan.innerHTML = `<strong style="white-space: nowrap;">${cp.id}</strong>
-      <span style="font-size: 11px; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(cp.nombre || '').substring(0, 30)}</span>
-      <span class="badge ${cp.is_positive ? 'ok' : 'fail'}" style="font-size: 9px; padding: 1px 5px; white-space: nowrap;">${cp.is_positive ? t['cp-positive'] : t['cp-negative']}</span>`;
+      <span style="font-size: 11px; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(cp.nombre || '').substring(0, 30)}</span>`;
     el.appendChild(infoSpan);
 
     const btnView = document.createElement('button');
@@ -858,6 +869,13 @@ function renderCps() {
       renderCps();
     };
     el.appendChild(btnView);
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = `badge ${cp.is_positive ? 'ok' : 'fail'}`;
+    badgeSpan.textContent = cp.is_positive ? t['cp-positive'] : t['cp-negative'];
+    badgeSpan.style.marginLeft = '10px';
+    badgeSpan.style.marginRight = '10px';
+    el.appendChild(badgeSpan);
 
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'item-actions';
@@ -1274,6 +1292,9 @@ async function showHuDetails(hu) {
   `;
   
   $('#btn-start-flow').disabled = !hu.hasExcel;
+  $('#btn-start-flow').title = !hu.hasExcel
+    ? (currentLang === 'es' ? 'Se requiere un archivo Excel en la HU' : 'An Excel file is required in the HU')
+    : '';
 
   const parsedCpsDetail = state.parsedTestCases && state.parsedTestCases[hu.id];
   if (parsedCpsDetail) {
@@ -1684,7 +1705,16 @@ $('#btn-generate-evidence').addEventListener('click', async () => {
   });
 });
 
-$('#btn-start-flow').onclick = () => loadHuReview(state.selectedHu);
+$('#btn-start-flow').onclick = () => {
+  if (!state.selectedHu) {
+    const msg = currentLang === 'es'
+      ? 'Selecciona una Historia de Usuario primero.'
+      : 'Select a User Story first.';
+    showDarkAlert(translations[currentLang]['app-title'], msg);
+    return;
+  }
+  loadHuReview(state.selectedHu);
+};
 
 // ─── Phase 2: Review ─────────────────────────────────────────────────────────
 
