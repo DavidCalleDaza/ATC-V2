@@ -1583,6 +1583,18 @@ app.on('before-quit', () => {
 
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
+// ── Recording Context (for detached recorder window) ─────────────────────────
+let recordingContext = null;
+
+ipcMain.handle('save-recording-context', async (_event, ctx) => {
+  recordingContext = ctx;
+  return { success: true };
+});
+
+ipcMain.handle('get-recording-context', async () => {
+  return recordingContext;
+});
+
 // ── Detached View Windows ────────────────────────────────────────────────────
 
 ipcMain.handle('create-detached-view', async (_event, { tabId }) => {
@@ -1603,7 +1615,7 @@ ipcMain.handle('create-detached-view', async (_event, { tabId }) => {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    title: `Automatic test case — ${tabId === 'exploratory' ? 'Explorer Testing' : 'Dashboard'}`,
+    title: `Automatic test case — ${tabId === 'exploratory' ? 'Explorer Testing' : tabId === 'recorder' ? 'Grabador de Evidencias' : 'Dashboard'}`,
   };
 
   if (process.platform === 'win32') {

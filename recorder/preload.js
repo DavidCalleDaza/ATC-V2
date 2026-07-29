@@ -46,4 +46,6 @@ contextBridge.exposeInMainWorld('api', {
   createDetachedView: (tabId) => ipcRenderer.invoke('create-detached-view', { tabId }),
   closeDetachedView: (tabId) => ipcRenderer.invoke('close-detached-view', { tabId }),
   onTabDetachedClosed: (cb) => ipcRenderer.on('tab-detached-closed', (_e, data) => cb(data)),
+  saveRecordingContext: (data) => ipcRenderer.invoke('save-recording-context', data),
+  getRecordingContext: () => ipcRenderer.invoke('get-recording-context'),
 });

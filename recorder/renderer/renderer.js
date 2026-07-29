@@ -367,7 +367,7 @@ function showPhase(name) {
   }
 
   // Dashboard vs Explorer: mutually exclusive tab content
-  phases.dashboard.classList.toggle('hidden', isExplorer);
+  phases.dashboard.classList.toggle('hidden', isExplorer || isDetachedWindow);
   phases.exploratory.classList.toggle('hidden', !isExplorer);
 
   // Update tab bar
@@ -1705,7 +1705,7 @@ $('#btn-generate-evidence').addEventListener('click', async () => {
   });
 });
 
-$('#btn-start-flow').onclick = () => {
+$('#btn-start-flow').onclick = async () => {
   if (!state.selectedHu) {
     const msg = currentLang === 'es'
       ? 'Selecciona una Historia de Usuario primero.'
@@ -1713,7 +1713,13 @@ $('#btn-start-flow').onclick = () => {
     showDarkAlert(translations[currentLang]['app-title'], msg);
     return;
   }
-  loadHuReview(state.selectedHu);
+  await window.api.saveRecordingContext({
+    project: state.project,
+    sprint: state.sprint,
+    huName: state.selectedHu.name,
+    huId: state.selectedHu.id
+  });
+  await window.api.createDetachedView('recorder');
 };
 
 // ─── Phase 2: Review ─────────────────────────────────────────────────────────
@@ -2218,6 +2224,10 @@ async function finalizeRecording() {
 }
 
 $('#btn-record-another').addEventListener('click', () => {
+  if (isDetachedWindow) {
+    window.close();
+    return;
+  }
   renderProjects();
   showPhase('dashboard');
 });
@@ -3343,6 +3353,10 @@ $('#btn-exp-continue-editing').addEventListener('click', async () => {
 
 // Hide continue button when going back to home
 $('#btn-record-another').addEventListener('click', () => {
+  if (isDetachedWindow) {
+    window.close();
+    return;
+  }
   $('#btn-exp-continue-editing').classList.add('hidden');
 });
 
@@ -3390,6 +3404,21 @@ if (isDetachedWindow) {
   if (detachedView === 'exploratory') {
     showPhase('exploratory');
     populateExploratoryProjects().then(() => renderEvidenceList());
+  } else if (detachedView === 'recorder') {
+    $('#phase-dashboard-layout').classList.add('hidden');
+    window.api.getRecordingContext().then(async (ctx) => {
+      if (ctx) {
+        state.project = ctx.project;
+        state.sprint = ctx.sprint;
+        const hus = await window.api.getHus({ project: ctx.project, sprint: ctx.sprint });
+        const hu = hus.find(h => h.id === ctx.huId || h.name === ctx.huName);
+        if (hu) {
+          state.selectedHu = hu;
+          loadHuReview(hu);
+          renderCps();
+        }
+      }
+    });
   } else {
     showPhase('dashboard');
     renderProjects();
