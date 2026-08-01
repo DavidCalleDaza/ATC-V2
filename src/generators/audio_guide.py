@@ -9,18 +9,18 @@ Pipeline completo:
 5. Convierte a audio (.wav) con Piper TTS
 """
 
-import os
 import re
 import logging
 from pathlib import Path
 from typing import List, Optional
 
-from src.data.excel_reader import read_positive_test_cases, read_hu_excel_with_details, TestCase
+from src.data.excel_reader import read_positive_test_cases
 from src.data.story_scanner import (
     scan_sprints, scan_hu_folders, find_hu_folder,
     scan_all_hu_folders, HuFolder
 )
 from src.engines.local.tts_engine import PiperTTS
+from src.engines.registry import get_narration_engine
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,8 @@ class AudioGuideGenerator:
         self.base_dir = base_dir
         self.output_dir = base_dir / "audio_guides"
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.api_key = os.getenv("GEMINI_API_KEY")
+
+        self.narration = get_narration_engine()
 
         # Configurar TTS
         if tts_models_dir is None:
@@ -66,77 +67,6 @@ class AudioGuideGenerator:
         if text and not text[-1] in '.!?':
             text += '.'
         return text
-
-    def _get_fallback_conversational_text(self, tc: TestCase, i: int) -> str:
-        """Formatea un CP en un párrafo conversacional fluido en español usando conectores naturales."""
-        parts = []
-        if i == 1:
-            intro = f"Para iniciar con el caso de prueba {tc.id}, titulado '{tc.nombre}'"
-        else:
-            intros = [
-                f"Siguiendo con el caso de prueba {tc.id}, '{tc.nombre}'",
-                f"Ahora pasamos al escenario {tc.id}, para '{tc.nombre}'",
-                f"A continuación, realizaremos la prueba {tc.id}, correspondiente a '{tc.nombre}'",
-                f"El siguiente paso es la ejecución de {tc.id}, '{tc.nombre}'"
-            ]
-            intro = intros[(i - 2) % len(intros)]
-            
-        parts.append(intro + ". ")
-        
-        if tc.precondiciones:
-            pre_clean = tc.precondiciones.strip().rstrip('.')
-            parts.append(f"Antes de comenzar, asegúrate de cumplir con las precondiciones, las cuales son: {pre_clean}. ")
-            
-        if tc.pasos:
-            steps_clean = tc.pasos.strip().rstrip('.')
-            parts.append(f"Para llevar a cabo este escenario, realiza las siguientes acciones en la interfaz: {steps_clean}. ")
-            
-        if tc.resultado_esperado:
-            res_clean = tc.resultado_esperado.strip().rstrip('.')
-            parts.append(f"Al finalizar, deberías poder observar como resultado que {res_clean}. ")
-            
-        return "".join(parts)
-
-    def _generate_humanized_text(self, tc: TestCase, i: int) -> str:
-        """Genera narración conversacional usando Gemini si está disponible; si no, recurre al fallback."""
-        if not self.api_key:
-            return self._get_fallback_conversational_text(tc, i)
-            
-        try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
-            
-            prompt = f"""Tú eres un experto en Aseguramiento de Calidad (QA) y tienes una voz natural y conversacional. 
-Dado el siguiente Caso de Prueba (CP), escribe un párrafo de narración continuo, fluido y altamente humano en español, como si le estuvieras explicando en tiempo real a una persona el paso a paso detallado que debe ejecutar en la interfaz del sistema.
-
-Reglas:
-1. No uses listas, viñetas ni formato Markdown seco (como **Precondiciones:** o **Resultado esperado:**). Debe ser un párrafo narrativo único y continuo.
-2. Utiliza conectores verbales fluidos y naturales en español (por ejemplo: "Para comenzar con la prueba...", "Ahora dirígete a...", "Una vez que ingreses...", "Deberías ver que...").
-3. Integra de forma natural y coherente: el nombre de la prueba, las precondiciones, los pasos de ejecución y el resultado esperado.
-4. Mantén el tono profesional pero cercano y natural, como un guía de software humano.
-
-Datos del caso de prueba:
-- ID: {tc.id}
-- Nombre de la prueba: {tc.nombre}
-- Precondiciones: {tc.precondiciones or 'Ninguna'}
-- Pasos a ejecutar: {tc.pasos or 'Ninguno'}
-- Resultado esperado: {tc.resultado_esperado or 'Ninguno'}
-
-Responde únicamente con el párrafo de narración sugerido en español, sin preámbulos ni explicaciones adicionales."""
-
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt
-            )
-            narrative = response.text.strip()
-            if narrative:
-                # Quitar posibles markdowns extras
-                narrative = re.sub(r'[*#\[\]_<>]', '', narrative)
-                return narrative
-        except Exception as e:
-            logger.warning(f"Error generando narración con Gemini para {tc.id}: {e}. Usando fallback.")
-            
-        return self._get_fallback_conversational_text(tc, i)
 
     def generate_script_md(self, hu_folder: HuFolder) -> Optional[Path]:
         """
@@ -178,8 +108,8 @@ Responde únicamente con el párrafo de narración sugerido en español, sin pre
             lines.append(f"### Paso {i}: {tc.id} — {tc.nombre}")
             lines.append("")
 
-            # Generar párrafo humanizado fluido
-            human_narrative = self._generate_humanized_text(tc, i)
+            # Generar párrafo narrativo fluido (backend seleccionado vía ATC_BACKEND)
+            human_narrative = self.narration.generate(tc, i)
             lines.append(human_narrative)
             lines.append("")
             lines.append("---")

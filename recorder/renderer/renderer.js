@@ -344,6 +344,34 @@ const state = {
 const urlParams = new URLSearchParams(window.location.search);
 const detachedView = urlParams.get('detached');
 const isDetachedWindow = !!detachedView;
+
+// ── Custom Titlebar Window Controls ──────────────────────────────────────
+document.getElementById('btn-minimize').addEventListener('click', () => {
+  window.api.minimizeWindow();
+});
+document.getElementById('btn-maximize').addEventListener('click', () => {
+  window.api.maximizeWindow();
+});
+document.getElementById('btn-close').addEventListener('click', () => {
+  window.api.closeWindow();
+});
+document.getElementById('titlebar-drag').addEventListener('dblclick', () => {
+  window.api.maximizeWindow();
+});
+window.api.onWindowState((state) => {
+  updateMaximizeIcon(state === 'maximized');
+});
+function updateMaximizeIcon(maximized) {
+  const btn = document.getElementById('btn-maximize');
+  if (maximized) {
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><rect x="2" y="0" width="7" height="7" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="0" y="2" width="7" height="7" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
+    btn.title = 'Restaurar';
+  } else {
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
+    btn.title = 'Maximizar';
+  }
+}
+
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 const phases = {
@@ -834,6 +862,7 @@ async function renderHus() {
 
   $('#btn-export-cp').classList.toggle('hidden', !state.selectedHu);
   $('#btn-import-cp').classList.toggle('hidden', !state.selectedHu);
+  $('#btn-add-cp').classList.toggle('hidden', !state.selectedHu);
 
   makeSortable('dash-hus-list', 'hu', (newOrder) => {
     localStorage.setItem('husOrder_' + state.project + '_' + state.sprint, JSON.stringify(newOrder));
@@ -858,6 +887,7 @@ function renderCps() {
 
   $('#btn-export-cp').classList.toggle('hidden', !state.selectedHu);
   $('#btn-import-cp').classList.toggle('hidden', !state.selectedHu);
+  $('#btn-add-cp').classList.toggle('hidden', !state.selectedHu);
 
   if (!state.selectedHu) {
     list.innerHTML = `<span style="font-size: 13px; color: #8b949e;">${t['cp-no-hu']}</span>`;
@@ -1341,7 +1371,7 @@ async function showHuDetails(hu) {
 
 // Subida de archivos
 $('#btn-upload-files').onclick = async () => {
-  const files = await window.api.selectFiles();
+  const files = await selectFilesCustom();
   if (files && files.length > 0) {
     const res = await window.api.uploadFile({ 
       project: state.project, sprint: state.sprint, huName: state.selectedHu.name, filePaths: files 
@@ -1437,7 +1467,7 @@ const mInput = $('#modal-input');
 let modalCallback = null;
 
 function openModal(title, placeholder, cb) {
-  $('#modal-title').textContent = title;
+  $('#modal-title').innerHTML = title;
   mInput.classList.remove('hidden');
   mInput.placeholder = placeholder;
   mInput.value = '';
@@ -1451,7 +1481,7 @@ function openModal(title, placeholder, cb) {
 }
 
 function openConfirmModal(title, message, onConfirm) {
-  $('#modal-title').textContent = title;
+  $('#modal-title').innerHTML = title;
   mInput.classList.add('hidden');
   
   let msgEl = document.getElementById('modal-message');
@@ -1472,7 +1502,7 @@ function openConfirmModal(title, message, onConfirm) {
 }
 
 function showDarkAlert(title, message) {
-  $('#modal-title').textContent = title;
+  $('#modal-title').innerHTML = title;
   mInput.classList.add('hidden');
   
   let msgEl = document.getElementById('modal-message');
@@ -1531,6 +1561,7 @@ $('#btn-export-project').innerHTML = iconExport(14);
 $('#btn-export-sprint').innerHTML = iconExport(14);
 $('#btn-export-hu').innerHTML = iconExport(14);
 $('#btn-export-cp').innerHTML = iconExport(14);
+$('#btn-add-cp').innerHTML = iconPlus(14);
 $('#btn-add-project').innerHTML = iconPlus(12);
 $('#btn-add-sprint').innerHTML = iconPlus(12);
 $('#btn-add-hu').innerHTML = iconPlus(12);
@@ -1595,9 +1626,9 @@ async function executeImport(type) {
   try {
     let source;
     if (type === 'zip') {
-      source = await window.api.selectProjectZip();
+      source = await selectZipCustom();
     } else {
-      source = await window.api.selectProjectFolder();
+      source = await selectFolderCustom();
     }
 
     if (!source) return;
@@ -1630,6 +1661,34 @@ $('#btn-add-sprint').onclick = () => openModal(translations[currentLang]['modal-
 $('#btn-add-hu').onclick = () => openModal(translations[currentLang]['modal-new-hu'], 'Ej: HU-123_Login', async (val) => {
   await window.api.createHu({ project: state.project, sprint: state.sprint, huName: val });
   renderHus();
+});
+
+$('#btn-add-cp').onclick = () => openModal(currentLang === 'es' ? 'Nuevo Caso de Prueba' : 'New Test Case', 'Ej: CP_001_Login', async (val) => {
+  if (!state.parsedTestCases) state.parsedTestCases = {};
+  if (!state.parsedTestCases[state.selectedHu.id]) state.parsedTestCases[state.selectedHu.id] = [];
+  
+  const cps = state.parsedTestCases[state.selectedHu.id];
+  let maxId = 0;
+  cps.forEach(cp => {
+    const match = cp.id.match(/\d+/);
+    if (match) {
+      const num = parseInt(match[0], 10);
+      if (num > maxId) maxId = num;
+    }
+  });
+  
+  const newId = `CP_${String(maxId + 1).padStart(3, '0')}`;
+  cps.push({
+    id: newId,
+    nombre: val.trim() || newId,
+    desc: '',
+    condiciones: '',
+    pasos: '',
+    resultados: ''
+  });
+  
+  await persistTestCases();
+  renderCps();
 });
 
 $('#btn-parse-excel').addEventListener('click', async () => {
@@ -2286,15 +2345,214 @@ $('#lang-select').addEventListener('change', (e) => {
   renderHus();
 });
 
+// ── Custom File Browser Helpers ──────────────────────────────────────────────
+function selectFilesCustom() {
+  return new Promise(async (resolve) => {
+    try {
+      const paths = await window.api.selectFiles();
+      if (paths && paths.length > 0) return resolve(paths);
+    } catch (e) {
+      console.warn('Native selectFiles failed:', e);
+    }
+    openFileBrowser('Seleccionar Documentos', ['xlsx', 'xls', 'docx', 'doc'], true, (paths) => resolve(paths || []));
+  });
+}
+function selectZipCustom() {
+  return new Promise(async (resolve) => {
+    try {
+      const path = await window.api.selectProjectZip();
+      if (path) return resolve(path);
+    } catch (e) {
+      console.warn('Native selectProjectZip failed:', e);
+    }
+    openFileBrowser('Seleccionar Proyecto (ZIP)', ['zip'], false, (path) => resolve(path));
+  });
+}
+function selectFolderCustom() {
+  return new Promise(async (resolve) => {
+    try {
+      const path = await window.api.selectProjectFolder();
+      if (typeof path === 'string') return resolve(path);
+      if (path === null) return resolve(null); // Usuario canceló el diálogo nativo
+      // Si llega aquí (path === false), el diálogo nativo falló, usar fallback HTML
+    } catch (e) {
+      console.warn('Native selectProjectFolder failed:', e);
+    }
+    openFileBrowser('Seleccionar Carpeta del Proyecto', [], false, (path) => resolve(path), true);
+  });
+}
+function selectVideoCustom() {
+  return new Promise(async (resolve) => {
+    try {
+      const path = await window.api.selectVideoFile();
+      if (path) return resolve(path);
+    } catch (e) {
+      console.warn('Native selectVideoFile failed:', e);
+    }
+    openFileBrowser('Seleccionar Video', ['mp4', 'webm', 'mkv', 'avi', 'mov'], false, (path) => resolve(path));
+  });
+}
+
+// ── Custom File Browser ──────────────────────────────────────────────────────
+let fbCallback = null;
+let fbSelectedPath = null;
+let fbSelectedPaths = [];
+let fbMultiSelect = false;
+let fbFilters = [];
+let fbFolderMode = false;
+let fbCurrentDir = '';
+
+async function openFileBrowser(title, filters = [], multi = false, callback, folderMode = false) {
+  fbCallback = callback;
+  fbFilters = filters || [];
+  fbMultiSelect = multi;
+  fbFolderMode = folderMode;
+  fbSelectedPath = null;
+  fbSelectedPaths = [];
+  $('#file-browser-title').textContent = title || 'Seleccionar Archivo';
+  $('#btn-file-browser-select').disabled = true;
+  $('#btn-file-browser-select').textContent = multi ? 'Seleccionar' : 'Seleccionar';
+  $('#file-browser-selected').textContent = '';
+  if (folderMode) {
+    $('#btn-file-browser-folder').classList.remove('hidden');
+  } else {
+    $('#btn-file-browser-folder').classList.add('hidden');
+  }
+  const homeDir = await window.api.getHomeDir();
+  navigateFileBrowser(homeDir);
+  $('#modal-file-browser-overlay').classList.remove('hidden');
+}
+
+async function navigateFileBrowser(dirPath) {
+  fbCurrentDir = dirPath;
+  const listEl = $('#file-browser-list');
+  listEl.innerHTML = '<div class="fb-empty">Cargando...</div>';
+  const entries = await window.api.listDirectory(dirPath);
+  renderBreadcrumb(dirPath);
+
+  if (entries.length === 0) {
+    listEl.innerHTML = '<div class="fb-empty">Directorio vacío</div>';
+    return;
+  }
+
+  const dirs = entries.filter(e => e.isDirectory);
+  const files = entries.filter(e => e.isFile).filter(e => {
+    if (fbFilters.length === 0) return true;
+    return fbFilters.some(ext => e.name.toLowerCase().endsWith('.' + ext.toLowerCase()));
+  });
+
+  listEl.innerHTML = '';
+  const all = [...dirs, ...files];
+  all.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'fb-item' + (entry.isDirectory ? ' dir' : '');
+    const fullPath = dirPath + '/' + entry.name;
+    item.dataset.path = fullPath;
+    item.dataset.isDir = entry.isDirectory ? '1' : '0';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'fb-item-icon ' + (entry.isDirectory ? 'folder' : 'file');
+    iconSpan.innerHTML = entry.isDirectory
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
+    item.appendChild(iconSpan);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'fb-item-name';
+    nameSpan.textContent = entry.name;
+    item.appendChild(nameSpan);
+
+    item.addEventListener('click', () => {
+      if (entry.isDirectory) {
+        navigateFileBrowser(fullPath);
+      } else {
+        if (fbMultiSelect) {
+          const idx = fbSelectedPaths.indexOf(fullPath);
+          if (idx >= 0) {
+            fbSelectedPaths.splice(idx, 1);
+            item.classList.remove('selected');
+          } else {
+            fbSelectedPaths.push(fullPath);
+            item.classList.add('selected');
+          }
+          $('#file-browser-selected').textContent = fbSelectedPaths.length + ' archivo(s) seleccionado(s)';
+          $('#btn-file-browser-select').disabled = fbSelectedPaths.length === 0;
+        } else {
+          document.querySelectorAll('.fb-item.selected').forEach(el => el.classList.remove('selected'));
+          item.classList.add('selected');
+          fbSelectedPath = fullPath;
+          $('#file-browser-selected').textContent = entry.name;
+          $('#btn-file-browser-select').disabled = false;
+        }
+      }
+    });
+
+    item.addEventListener('dblclick', () => {
+      if (entry.isDirectory) {
+        navigateFileBrowser(fullPath);
+      } else {
+        fbSelectedPath = fullPath;
+        confirmFileBrowserSelection();
+      }
+    });
+
+    listEl.appendChild(item);
+  });
+}
+
+function renderBreadcrumb(dirPath) {
+  const bc = $('#file-browser-breadcrumb');
+  bc.innerHTML = '';
+  const parts = dirPath.split('/').filter(Boolean);
+  let accum = '';
+  parts.forEach((part, i) => {
+    accum += '/' + part;
+    if (i > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'breadcrumb-sep';
+      sep.textContent = ' / ';
+      bc.appendChild(sep);
+    }
+    const span = document.createElement('span');
+    span.textContent = part;
+    span.title = accum;
+    span.onclick = () => navigateFileBrowser(accum);
+    bc.appendChild(span);
+  });
+}
+
+function confirmFileBrowserSelection() {
+  $('#modal-file-browser-overlay').classList.add('hidden');
+  if (fbCallback) {
+    if (fbMultiSelect && fbSelectedPaths.length > 0) {
+      fbCallback(fbSelectedPaths);
+    } else if (fbSelectedPath) {
+      fbCallback(fbSelectedPath);
+    } else {
+      fbCallback(null);
+    }
+  }
+}
+
+$('#btn-file-browser-select').addEventListener('click', confirmFileBrowserSelection);
+$('#btn-file-browser-folder').addEventListener('click', () => {
+  $('#modal-file-browser-overlay').classList.add('hidden');
+  if (fbCallback) fbCallback(fbCurrentDir);
+});
+$('#btn-file-browser-cancel').addEventListener('click', () => {
+  $('#modal-file-browser-overlay').classList.add('hidden');
+  if (fbCallback) fbCallback(null);
+});
+$('#btn-file-browser-home').addEventListener('click', async () => {
+  const homeDir = await window.api.getHomeDir();
+  navigateFileBrowser(homeDir);
+});
+
 // Init
 $('#lang-select').value = currentLang;
 applyTranslations();
 
-if (window.api && window.api.platform === 'win32') {
-  $('#titlebar').style.display = 'flex';
-} else {
-  $('#titlebar').style.display = 'none';
-}
+$('#titlebar').style.display = 'flex';
 
 // ── Exploratory Testing Variables & Logic ──
 let expVideoPath = null;
@@ -2402,7 +2660,7 @@ dragZone.addEventListener('drop', (e) => {
   }
 });
 dragZone.addEventListener('click', async () => {
-  const file = await window.api.selectVideoFile();
+  const file = await selectVideoCustom();
   if (file) {
     loadExploratoryVideo(file);
   }

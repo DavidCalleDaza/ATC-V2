@@ -17,8 +17,9 @@ imagehash>=4.3
 thefuzz>=0.20
 sentence-transformers>=2.2
 
-# IA (opcional, requiere GEMINI_API_KEY)
-google-genai>=0.3
+# IA Cloud — Opcional, solo necesario con ATC_BACKEND=cloud
+# Descomentar si se desea usar el backend cloud (Gemini):
+# google-genai>=0.3
 
 # Audio
 openai-whisper>=20230918

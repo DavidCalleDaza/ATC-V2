@@ -2,6 +2,17 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
   platform: process.platform,
+  // Window controls
+  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  maximizeWindow: () => ipcRenderer.send('window-maximize'),
+  closeWindow: () => ipcRenderer.send('window-close'),
+  onWindowState: (cb) => ipcRenderer.on('window-state', (_e, state) => cb(state)),
+  // File browser
+  listDirectory: (dirPath) => ipcRenderer.invoke('list-directory', dirPath),
+  getHomeDir: () => ipcRenderer.invoke('get-home-dir'),
+  selectFolder: () => ipcRenderer.invoke('select-project-folder'),
+  selectWindowsFolder: () => ipcRenderer.invoke('select-windows-folder'),
+  // Project management
   getProjects: () => ipcRenderer.invoke('get-projects'),
   getSprints: (project) => ipcRenderer.invoke('get-sprints', project),
   getHus: (data) => ipcRenderer.invoke('get-hus', data),

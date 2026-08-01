@@ -1,8 +1,10 @@
 """
 gemini_analyzer.py — Análisis de video con IA Gemini.
 
-Refactorización de scripts/analizar_videos_ai.py.
+Backend cloud del contrato VideoAnalyzer.
 Sube video a servidores de Google, obtiene timestamps y bounding boxes por CP.
+
+Actualmente en espera de activación.
 """
 
 import os
@@ -11,21 +13,13 @@ import json
 import logging
 from pathlib import Path
 from typing import List, Dict, Optional
-from dataclasses import dataclass
+
+from src.engines.base import VideoAnalyzer, CpDetection
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class CpDetection:
-    """Resultado de detección de un CP por Gemini."""
-    cp_id: str
-    second: int
-    bounding_box: List[float]  # [ymin, xmin, ymax, xmax] normalizado 0-1000
-    confidence: float = 1.0
-
-
-class GeminiVideoAnalyzer:
+class GeminiVideoAnalyzer(VideoAnalyzer):
     """Analiza video con Google Gemini para detectar momentos clave de CPs."""
 
     def __init__(self, api_key: Optional[str] = None):
@@ -44,6 +38,10 @@ class GeminiVideoAnalyzer:
             from google import genai
             self._client = genai.Client(api_key=self.api_key)
         return self._client
+
+    def analyze(self, video_path: Path, cp_list: List[Dict]) -> List[CpDetection]:
+        """Implementación del contrato VideoAnalyzer.analyze."""
+        return self.analyze_video(video_path, cp_list)
 
     def analyze_video(
         self,

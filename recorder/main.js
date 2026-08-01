@@ -1,8 +1,15 @@
-const { app, BrowserWindow, ipcMain, dialog, desktopCapturer, session, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, desktopCapturer, session, nativeTheme, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { spawn, execSync } = require('child_process');
 const AdmZip = require('adm-zip');
+
+app.setName('Antigravity Recorder');
+
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.antigravity.recorder');
+}
 
 // Desactivar aceleración por hardware para forzar captura por software (evita crashes de DirectX/DXGI y UAC)
 app.disableHardwareAcceleration();
@@ -15,41 +22,61 @@ app.commandLine.appendSwitch('disk-cache-size', '1');
 const BASE_DIR = path.resolve(__dirname, '..');
 const RECORDER_DIR = __dirname;
 
-// Ruta al entorno virtual de Python
-let PYTHON_EXEC = path.join(BASE_DIR, 'venv', 'bin', 'python3');
 const isWindows = process.platform === 'win32';
+const isLinux = process.platform === 'linux';
+const isMac = process.platform === 'darwin';
 const MAIN_PY = path.join(BASE_DIR, 'main.py');
+
+function detectPythonExec() {
+  if (isWindows) {
+    const winPython = path.join(BASE_DIR, 'venv', 'Scripts', 'python.exe');
+    if (fs.existsSync(winPython)) return winPython;
+  } else {
+    const unixPython = path.join(BASE_DIR, 'venv', 'bin', 'python3');
+    if (fs.existsSync(unixPython)) return unixPython;
+    const unixPy = path.join(BASE_DIR, 'venv', 'bin', 'python');
+    if (fs.existsSync(unixPy)) return unixPy;
+  }
+  return isWindows ? 'python' : 'python3';
+}
+
+const PYTHON_EXEC = detectPythonExec();
+console.log(`[ATC] Platform: ${process.platform}, Python: ${PYTHON_EXEC}`);
 
 function runPythonCommand(args) {
   return new Promise((resolve, reject) => {
     let cmd = PYTHON_EXEC;
     let finalArgs = [MAIN_PY, ...args];
     let spawnOptions = { cwd: BASE_DIR };
-    // Usar la carpeta 'bin' en vez del archivo porque los symlinks de Linux fallan al leerse en SMB/Windows
-    const isWslVenv = fs.existsSync(path.join(BASE_DIR, 'venv', 'bin'));
 
-    // Si la app corre nativamente en Windows pero los archivos están en WSL (sea por wsl.localhost o disco montado Z:):
-    if (isWindows && (BASE_DIR.includes('wsl.localhost') || isWslVenv)) {
-      cmd = 'wsl.exe';
+    const isWslVenv = fs.existsSync(path.join(BASE_DIR, 'venv', 'bin'));
+    const isWslPath = BASE_DIR.includes('wsl.localhost');
+
+    const useWsl = isWindows && (isWslPath || isWslVenv);
+
+    if (useWsl) {
       let linuxBaseDir;
-      let wslDistro = 'Ubuntu';
-      
-      if (BASE_DIR.includes('wsl.localhost')) {
-        wslDistro = BASE_DIR.split('\\')[3] || 'Ubuntu';
-        linuxBaseDir = BASE_DIR.substring(BASE_DIR.indexOf(wslDistro) + wslDistro.length).replace(/\\/g, '/');
+
+      if (isWslPath) {
+        const parts = BASE_DIR.split(/[\\/]/);
+        const wslIndex = parts.findIndex(p => p.toLowerCase() === 'wsl.localhost');
+        const distro = parts[wslIndex + 1] || 'Ubuntu';
+        linuxBaseDir = '/' + parts.slice(wslIndex + 2).join('/');
+        finalArgs = [
+          '-d', distro, '--', 'bash', '-c',
+          `cd "${linuxBaseDir}" && "${linuxBaseDir}/venv/bin/python3" "${linuxBaseDir}/main.py" ${args.map(a => `"${a}"`).join(' ')}`
+        ];
+        console.log(`[ATC] WSL mode: distro=${distro}, path=${linuxBaseDir}`);
       } else {
-        linuxBaseDir = BASE_DIR.substring(2).replace(/\\/g, '/'); // Remueve "Z:" y convierte
+        linuxBaseDir = BASE_DIR.substring(2).replace(/\\/g, '/');
+        finalArgs = [
+          '--', 'bash', '-c',
+          `cd "${linuxBaseDir}" && "${linuxBaseDir}/venv/bin/python3" "${linuxBaseDir}/main.py" ${args.map(a => `"${a}"`).join(' ')}`
+        ];
+        console.log(`[ATC] WSL mode: mounted drive, path=${linuxBaseDir}`);
       }
-      
-      const linuxPythonExec = `${linuxBaseDir}/venv/bin/python3`;
-      const linuxMainPy = `${linuxBaseDir}/main.py`;
-      
-      const bashArgs = [linuxMainPy, ...args].map(a => `"${a}"`).join(' ');
-      finalArgs = ['--', 'bash', '-c', `cd "${linuxBaseDir}" && "${linuxPythonExec}" ${bashArgs}`];
-    } else if (isWindows) {
-      cmd = path.join(BASE_DIR, 'venv', 'Scripts', 'python.exe');
-    } else {
-      cmd = fs.existsSync(PYTHON_EXEC) ? PYTHON_EXEC : 'python3';
+
+      cmd = 'wsl.exe';
     }
 
     const proc = spawn(cmd, finalArgs, spawnOptions);
@@ -83,7 +110,7 @@ ipcMain.handle('get-sprints', async (_event, project) => {
   if (!fs.existsSync(projectDir)) return [];
   
   return fs.readdirSync(projectDir, { withFileTypes: true })
-    .filter(e => e.isDirectory() && e.name.toLowerCase().startsWith('sprint-'))
+    .filter(e => e.isDirectory() && !e.name.startsWith('.'))
     .map(e => e.name)
     .sort();
 });
@@ -94,9 +121,9 @@ ipcMain.handle('get-hus', async (_event, { project, sprint }) => {
     if (!fs.existsSync(sprintDir)) return [];
 
     const folders = fs.readdirSync(sprintDir, { withFileTypes: true })
-      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')))
+      .filter(e => e.isDirectory() && (e.name.toLowerCase().startsWith('cp_') || e.name.toLowerCase().startsWith('hu')))
       .map(e => {
-        const id = e.name.match(/HU-\d+/)?.[0] || e.name;
+        const id = e.name.match(/HU-\d+/i)?.[0].toUpperCase() || e.name;
         const huDir = path.join(sprintDir, e.name);
         const wavPath = path.join(huDir, `${id}_guide.wav`);
         const mdPath = path.join(huDir, `${id}_guide.md`);
@@ -261,6 +288,97 @@ ipcMain.handle('delete-hu', async (_event, { project, sprint, huName }) => {
 
 // ── Import Project Handlers ──────────────────────────────────────────────────
 
+async function selectFolderSmart() {
+  try {
+    let isWsl = false;
+    if (process.platform === 'linux') {
+      try {
+        const fs = require('fs');
+        isWsl = fs.readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft');
+      } catch (e) {}
+    }
+
+    if (isWsl) {
+      try {
+        const { execSync } = require('child_process');
+        const psScript = `
+          $ProgressPreference = 'SilentlyContinue'
+          $code = @"
+using System;
+using System.Runtime.InteropServices;
+public class FolderPicker {
+    [ComImport, Guid("DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7")]
+    private class FileOpenDialog {}
+    [ComImport, Guid("42f85136-db7e-439c-85f1-e4075d135fc8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IFileOpenDialog {
+        [PreserveSig] uint Show([In] IntPtr parent);
+        void SetOptions([In] uint fos);
+        void GetResult([Out, MarshalAs(UnmanagedType.Interface)] out IShellItem ppsi);
+    }
+    [ComImport, Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellItem {
+        void GetDisplayName([In] uint sigdnName, [MarshalAs(UnmanagedType.LPWStr)] out string ppszName);
+    }
+    public static string Pick() {
+        var dialog = (IFileOpenDialog)new FileOpenDialog();
+        dialog.SetOptions(32); // FOS_PICKFOLDERS
+        if (dialog.Show(IntPtr.Zero) == 0) {
+            dialog.GetResult(out var item);
+            item.GetDisplayName(0x80058000, out var path); // SIGDN_FILESYSPATH
+            return path;
+        }
+        return null;
+    }
+}
+"@
+          Add-Type -TypeDefinition $code
+          $res = [FolderPicker]::Pick()
+          if ($res) { Write-Output $res }
+        `;
+        const b64 = Buffer.from(psScript, 'utf16le').toString('base64');
+        const cmd = `powershell.exe -sta -NoProfile -NonInteractive -EncodedCommand ${b64}`;
+        const rawResult = execSync(cmd, { encoding: 'utf8' }).trim();
+        
+        const lines = rawResult.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const result = lines.length > 0 ? lines[lines.length - 1] : '';
+
+        if (result && /^[A-Za-z]:\\/.test(result)) {
+          let selected = result.replace(/^([A-Za-z]):\\/, (_, letter) => `/mnt/${letter.toLowerCase()}/`).replace(/\\/g, '/');
+          return selected;
+        }
+        return null; // Canceled or no valid path
+      } catch (e) {
+        console.warn('PowerShell folder dialog failed in WSL:', e.message);
+      }
+    }
+
+    const win = BrowserWindow.getFocusedWindow() || appWin;
+    const options = {
+      title: 'Selecciona la carpeta del proyecto',
+      properties: ['openDirectory', 'createDirectory']
+    };
+    const result = win ? await dialog.showOpenDialog(win, options) : await dialog.showOpenDialog(options);
+    if (!result.canceled && result.filePaths && result.filePaths.length > 0) {
+      let selected = result.filePaths[0];
+      if (selected && process.platform === 'linux' && /^[A-Za-z]:\\/.test(selected)) {
+        selected = selected.replace(/^([A-Z]):\\/, (_, letter) => `/mnt/${letter.toLowerCase()}/`).replace(/\\/g, '/');
+      }
+      return selected;
+    }
+    return null;
+  } catch (err) {
+    console.warn('[selectFolderSmart] Native dialog error, trying fallback:', err.message);
+    if (process.platform === 'linux') {
+      try {
+        const { execSync } = require('child_process');
+        const zenityPath = execSync('zenity --file-selection --directory --title="Selecciona la carpeta del proyecto"', { encoding: 'utf8' }).trim();
+        if (zenityPath) return zenityPath;
+      } catch (e) {}
+    }
+    return false;
+  }
+}
+
 ipcMain.handle('select-project-zip', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -272,10 +390,7 @@ ipcMain.handle('select-project-zip', async () => {
 });
 
 ipcMain.handle('select-project-folder', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory']
-  });
-  return result.canceled ? null : result.filePaths[0];
+  return await selectFolderSmart();
 });
 
 ipcMain.handle('import-project', async (_event, { source, type }) => {
@@ -364,8 +479,8 @@ ipcMain.handle('import-project', async (_event, { source, type }) => {
         return { success: false, error: 'La carpeta seleccionada no contiene carpetas de sprint' };
       }
 
-      // Copy folder recursively
-      fs.cpSync(source, projectDir, { recursive: true });
+      // Copy folder recursively (asynchronous to avoid blocking the main thread)
+      await fs.promises.cp(source, projectDir, { recursive: true });
 
     } else {
       return { success: false, error: 'Tipo de importación no válido' };
@@ -591,7 +706,7 @@ ipcMain.handle('load-test-cases', async (_event, { project, sprint }) => {
     if (!fs.existsSync(sprintDir)) return { success: true, data: {} };
 
     const hus = fs.readdirSync(sprintDir, { withFileTypes: true })
-      .filter(e => e.isDirectory() && (e.name.startsWith('CP_') || e.name.startsWith('HU')));
+      .filter(e => e.isDirectory() && (e.name.toLowerCase().startsWith('cp_') || e.name.toLowerCase().startsWith('hu')));
 
     const result = {};
     for (const hu of hus) {
@@ -599,7 +714,7 @@ ipcMain.handle('load-test-cases', async (_event, { project, sprint }) => {
       if (fs.existsSync(filePath)) {
         try {
           const content = fs.readFileSync(filePath, 'utf-8');
-          const huId = hu.name.match(/HU-\d+/)?.[0] || hu.name;
+          const huId = hu.name.match(/HU-\d+/i)?.[0].toUpperCase() || hu.name;
           result[huId] = JSON.parse(content);
         } catch (e) { /* skip corrupted files */ }
       }
@@ -1810,35 +1925,30 @@ function createWindow() {
   const winOptions = {
     width: 1200,
     height: 850,
+    minWidth: 900,
+    minHeight: 600,
     backgroundColor: '#0d1117',
     icon: path.join(__dirname, 'assets', 'icon.png'),
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    title: 'Automatic test case — Screen Recorder Sincronizado',
+    title: 'Antigravity Recorder',
   };
-
-  if (process.platform === 'win32') {
-    winOptions.titleBarStyle = 'hidden';
-    winOptions.titleBarOverlay = {
-      color: '#070a0e',
-      symbolColor: '#c9d1d9',
-      height: 32
-    };
-  }
 
   const win = new BrowserWindow(winOptions);
 
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
-  win.removeMenu();
   appWin = win;
+
+  win.on('maximize', () => { win.webContents.send('window-state', 'maximized'); });
+  win.on('unmaximize', () => { win.webContents.send('window-state', 'normal'); });
 
   // ── Destroy overlay when the main window is closed ──────────────────────────
   win.on('close', () => {
     closeOverlayWindow();
-    // Close all detached windows
     for (const [tabId, detachedWin] of detachedWindows) {
       if (detachedWin && !detachedWin.isDestroyed()) {
         detachedWin.destroy();
@@ -1851,6 +1961,74 @@ function createWindow() {
     }
   });
 }
+
+// ── Window Control IPC ────────────────────────────────────────────────────────
+const windowStateMap = new Map();
+
+ipcMain.on('window-minimize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed()) win.minimize();
+});
+
+ipcMain.on('window-maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win || win.isDestroyed()) return;
+  try {
+    if (windowStateMap.get(win.id)) {
+      const prev = windowStateMap.get(win.id);
+      windowStateMap.delete(win.id);
+      win.setBounds(prev);
+      win.webContents.send('window-state', 'normal');
+    } else {
+      windowStateMap.set(win.id, win.getBounds());
+      const workArea = screen.getDisplayMatching(win.getBounds()).workArea;
+      win.setBounds({ x: workArea.x, y: workArea.y, width: workArea.width, height: workArea.height });
+      win.webContents.send('window-state', 'maximized');
+    }
+  } catch (e) {
+    console.error('[Window] maximize error:', e.message);
+  }
+});
+
+ipcMain.on('window-close', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed()) win.close();
+});
+
+// ── File Browser IPC ───────────────────────────────────────────────────────────
+ipcMain.handle('list-directory', async (_event, dirPath) => {
+  try {
+    if (!fs.existsSync(dirPath)) return [];
+    return fs.readdirSync(dirPath, { withFileTypes: true })
+      .filter(e => !e.name.startsWith('.'))
+      .map(e => ({
+        name: e.name,
+        isDirectory: e.isDirectory(),
+        isFile: e.isFile(),
+      }))
+      .sort((a, b) => {
+        if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+  } catch (e) {
+    return [];
+  }
+});
+
+ipcMain.handle('select-windows-folder', async () => {
+  return await selectFolderSmart();
+});
+
+ipcMain.handle('get-home-dir', async () => {
+  const home = os.homedir();
+  if (process.platform === 'linux') {
+    try {
+      if (fs.existsSync('/mnt/c/Users')) return '/mnt/c/Users';
+      if (fs.existsSync('/mnt/c')) return '/mnt/c';
+    } catch(e) {}
+  }
+  return home || process.env.USERPROFILE || '/';
+});
 
 app.whenReady().then(() => {
   // Conceder permisos absolutos a WebRTC y DesktopCapturer
@@ -1910,22 +2088,14 @@ ipcMain.handle('create-detached-view', async (_event, { tabId }) => {
     height: 850,
     backgroundColor: '#0d1117',
     icon: path.join(__dirname, 'assets', 'icon.png'),
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    title: `Automatic test case — ${tabId === 'exploratory' ? 'Explorer Testing' : tabId === 'recorder' ? 'Grabador de Evidencias' : 'Dashboard'}`,
+    title: `Antigravity Recorder — ${tabId === 'exploratory' ? 'Exploratory Testing' : tabId === 'recorder' ? 'Recording' : 'Dashboard'}`,
   };
-
-  if (process.platform === 'win32') {
-    winOptions.titleBarStyle = 'hidden';
-    winOptions.titleBarOverlay = {
-      color: '#070a0e',
-      symbolColor: '#c9d1d9',
-      height: 32
-    };
-  }
 
   const win = new BrowserWindow(winOptions);
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'), { query: { detached: tabId } });

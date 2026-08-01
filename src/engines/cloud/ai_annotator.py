@@ -1,8 +1,8 @@
 """
-ai_annotator.py — Anotación visual basada en coordenadas de IA.
+ai_annotator.py — Anotación visual sobre imágenes.
 
-Dibuja bounding boxes, flechas y labels sobre imágenes
-usando coordenadas normalizadas (0-1000) de Gemini.
+Dibuja bounding boxes, flechas y labels usando coordenadas normalizadas (0-1000).
+Utilidad puramente gráfica con OpenCV — no requiere APIs externas.
 """
 
 import logging
